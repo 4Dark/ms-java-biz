@@ -7,6 +7,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import com.dark.aiagent.domain.event.repository.EventRepository;
+import com.dark.aiagent.domain.mcp.repository.McpPluginRepository;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -19,6 +20,9 @@ class AiApplicationTests {
 
     @MockBean
     private MongoTemplate mongoTemplate;
+
+    @MockBean
+    private McpPluginRepository mcpPluginRepository;
 
     @BeforeEach
     void setup() {

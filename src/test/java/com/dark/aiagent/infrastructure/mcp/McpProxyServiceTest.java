@@ -82,9 +82,7 @@ class McpProxyServiceTest {
         WebClient.RequestHeadersSpec getHeadersSpec = mock(WebClient.RequestHeadersSpec.class);
         WebClient.ResponseSpec responseSpec = mock(WebClient.ResponseSpec.class);
         
-        when(webClient.mutate()).thenReturn(webClientBuilder);
         when(webClientBuilder.baseUrl(anyString())).thenReturn(webClientBuilder);
-        when(webClientBuilder.build()).thenReturn(webClient);
         
         when(webClient.get()).thenReturn(getSpec);
         when(getSpec.accept(MediaType.TEXT_EVENT_STREAM)).thenReturn(getHeadersSpec);
