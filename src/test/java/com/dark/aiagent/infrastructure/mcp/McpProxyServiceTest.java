@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -49,6 +50,7 @@ class McpProxyServiceTest {
 
     @BeforeEach
     void setUp() {
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         mcpProxyService = new McpProxyService(toolCacheMapper, pluginRepository, objectMapper, webClientBuilder);
     }
@@ -92,7 +94,7 @@ class McpProxyServiceTest {
                 .event("endpoint")
                 .data("/messages")
                 .build();
-        when(responseSpec.bodyToFlux(ServerSentEvent.class)).thenReturn(Flux.just(endpointEvent));
+        when(responseSpec.bodyToFlux(any(ParameterizedTypeReference.class))).thenReturn(Flux.just(endpointEvent));
 
         // Mock Post call
         WebClient.RequestBodyUriSpec postSpec = mock(WebClient.RequestBodyUriSpec.class);

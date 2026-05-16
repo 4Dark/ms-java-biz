@@ -42,6 +42,7 @@ class McpSchemaFetcherTest {
 
     @BeforeEach
     void setUp() {
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.baseUrl(anyString())).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         mcpSchemaFetcher = new McpSchemaFetcher(toolCacheMapper, webClientBuilder, objectMapper);
