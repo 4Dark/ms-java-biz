@@ -17,6 +17,7 @@ import com.dark.aiagent.infrastructure.persistence.mapper.McpToolCacheMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import com.dark.aiagent.config.McpProperties;
 import reactor.core.publisher.Mono;
 
 @Slf4j
@@ -26,23 +27,31 @@ public class McpSchemaFetcher {
     private final McpToolCacheMapper toolCacheMapper;
     private final WebClient.Builder vanillaWebClientBuilder;
     private final ObjectMapper objectMapper;
-
-    @org.springframework.beans.factory.annotation.Value("${server.port:8080}")
-    private int serverPort;
+    private final McpProperties mcpProperties;
 
     public McpSchemaFetcher(McpToolCacheMapper toolCacheMapper,
             @Qualifier("vanillaWebClientBuilder") WebClient.Builder vanillaWebClientBuilder,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            McpProperties mcpProperties) {
         this.toolCacheMapper = toolCacheMapper;
         this.vanillaWebClientBuilder = vanillaWebClientBuilder;
         this.objectMapper = objectMapper;
+        this.mcpProperties = mcpProperties;
+    }
+
+    private String resolveLocalUrl(String sseUrl) {
+        if (!sseUrl.startsWith("/")) {
+            return sseUrl;
+        }
+        String baseUrl = mcpProperties.getLocalServerBaseUrl();
+        if (baseUrl.endsWith("/")) {
+            baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+        }
+        return baseUrl + sseUrl;
     }
 
     public void fetchAndCache(UUID serverId, String sseUrl) {
-        String finalUrl = sseUrl;
-        if (sseUrl.startsWith("/")) {
-            finalUrl = "http://localhost:" + serverPort + sseUrl;
-        }
+        final String finalUrl = resolveLocalUrl(sseUrl);
         log.info("Starting asynchronous schema fetch for server {} at {}", serverId, finalUrl);
         
         // 使用 clone() 避免污染单例 builder 的状态
@@ -64,7 +73,7 @@ public class McpSchemaFetcher {
                     String data = event.data();
 
                     if ("endpoint".equals(eventType) && data != null) {
-                        String url = resolveUrl(sseUrl, data);
+                        String url = resolveUrl(finalUrl, data);
                         messageEndpoint.set(url);
                         log.info("Found endpoint: {}, sending initialize...", url);
                         return sendPostRequest(url, createInitializeRequest()).then(Mono.empty());

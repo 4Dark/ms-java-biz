@@ -17,6 +17,10 @@ public class KnowledgeDocumentConverter {
         dataObject.setAuthor(domain.getAuthor());
         dataObject.setFilePath(domain.getFilePath());
         dataObject.setConfigJson(domain.getConfig());
+        dataObject.setFileHash(domain.getFileHash());
+        dataObject.setDocType(domain.getDocType());
+        dataObject.setCategory(domain.getCategory());
+        dataObject.setMetadata(domain.getMetadata());
         dataObject.setCreateTime(domain.getCreateTime());
         dataObject.setUpdateTime(domain.getUpdateTime());
         return dataObject;
@@ -24,16 +28,21 @@ public class KnowledgeDocumentConverter {
 
     public KnowledgeDocument toDomain(KnowledgeDocumentDO dataObject) {
         if (dataObject == null) return null;
-        KnowledgeDocument domain = new KnowledgeDocument(
+        return new KnowledgeDocument(
             dataObject.getId(),
             dataObject.getTopicId(),
             dataObject.getTitle(),
+            dataObject.getStatus(),
             dataObject.getAuthor(),
             dataObject.getFilePath(),
-            dataObject.getConfigJson()
+            dataObject.getConfigJson(),
+            dataObject.getFileHash(),
+            dataObject.getDocType(),
+            dataObject.getCategory(),
+            dataObject.getMetadata(),
+            dataObject.getCreateTime(),
+            dataObject.getUpdateTime()
         );
-        // Note: Reflection or specialized constructor needed if status/createTime mismatch,
-        // but for simplicity we rely on constructor initialization in this refactor step.
-        return domain;
     }
 }
+

@@ -3,6 +3,7 @@ package com.dark.aiagent.infrastructure.mcp;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -20,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.dark.aiagent.config.McpProperties;
 import com.dark.aiagent.infrastructure.persistence.mapper.McpToolCacheMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -36,16 +38,19 @@ class McpSchemaFetcherTest {
     private WebClient.Builder webClientBuilder;
     @Mock
     private WebClient webClient;
+    @Mock
+    private McpProperties mcpProperties;
 
     private McpSchemaFetcher mcpSchemaFetcher;
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     void setUp() {
+        lenient().when(mcpProperties.getLocalServerBaseUrl()).thenReturn("http://localhost:8080");
         when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.baseUrl(anyString())).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
-        mcpSchemaFetcher = new McpSchemaFetcher(toolCacheMapper, webClientBuilder, objectMapper);
+        mcpSchemaFetcher = new McpSchemaFetcher(toolCacheMapper, webClientBuilder, objectMapper, mcpProperties);
     }
 
     @Test

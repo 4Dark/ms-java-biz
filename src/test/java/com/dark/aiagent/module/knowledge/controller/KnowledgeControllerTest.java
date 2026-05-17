@@ -57,7 +57,7 @@ class KnowledgeControllerTest {
 
         when(topicRepository.findAll()).thenReturn(List.of(topic));
 
-        mockMvc.perform(get("/rest/dark/v1/knowledge/topics")).andExpect(status().isOk())
+        mockMvc.perform(get("/rest/biz/v1/knowledge/topics")).andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("测试主题"));
     }
 
@@ -70,7 +70,7 @@ class KnowledgeControllerTest {
                 .build();
 
         mockMvc.perform(
-                post("/rest/dark/v1/knowledge/topics").contentType(MediaType.APPLICATION_JSON)
+                post("/rest/biz/v1/knowledge/topics").contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(topic)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.name").value("新架构文档"));
@@ -84,7 +84,7 @@ class KnowledgeControllerTest {
     void shouldDeleteTopicAndCleanupDocuments() throws Exception {
         String topicId = "topic-999";
 
-        mockMvc.perform(delete("/rest/dark/v1/knowledge/topics/" + topicId))
+        mockMvc.perform(delete("/rest/biz/v1/knowledge/topics/" + topicId))
                 .andExpect(status().isOk());
 
 

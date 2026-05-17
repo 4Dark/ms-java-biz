@@ -28,7 +28,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "Knowledge Console")
 @RestController
-@RequestMapping("/rest/dark/v1/knowledge")
+@RequestMapping("/rest/biz/v1/knowledge")
 public class KnowledgeController {
 
     @Autowired

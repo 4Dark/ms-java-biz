@@ -21,7 +21,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "Chat History Console")
 @RestController
-@RequestMapping("/rest/dark/v1/history")
+@RequestMapping("/rest/biz/v1/history")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class ChatHistoryController {

@@ -19,7 +19,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  */
 @Tag(name = "协和小智")
 @RestController
-@RequestMapping("xiaozhi")
+@RequestMapping("/rest/biz/v1/xiaozhi")
 public class XiaozhiController {
 
     @Autowired

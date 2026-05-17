@@ -11,7 +11,7 @@ import java.util.Map;
 
 @Tag(name = "公共上传控制器", description = "统一下发上传接口，根据 type 路径自动路由不同业务策略")
 @RestController
-@RequestMapping("/rest/dark/v1/upload")
+@RequestMapping("/rest/biz/v1/upload")
 public class FileUploadController {
 
     private final Map<String, FileUploadStrategy> strategyMap = new HashMap<>();
