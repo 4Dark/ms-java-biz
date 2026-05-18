@@ -23,6 +23,7 @@ import com.dark.aiagent.domain.knowledge.entity.KnowledgeDocument;
 import com.dark.aiagent.domain.knowledge.entity.KnowledgeTopic;
 import com.dark.aiagent.domain.knowledge.repository.KnowledgeTopicRepository;
 import com.dark.aiagent.application.knowledge.service.KnowledgeDocumentApplicationService;
+import com.dark.aiagent.domain.common.PageResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -91,10 +92,18 @@ public class KnowledgeController {
         }
     }
 
-    @Operation(summary = "Get documents by topic")
+    @Operation(summary = "Get documents by topic (supports optional pagination)")
     @GetMapping("/documents")
-    public List<KnowledgeDocument> getDocuments(@RequestParam("topicId") String topicId) {
-        return documentService.getDocumentsByTopic(topicId);
+    public ResponseEntity<?> getDocuments(
+            @RequestParam("topicId") String topicId,
+            @RequestParam(value = "page", required = false) Integer page,
+            @RequestParam(value = "size", required = false) Integer size) {
+        if (page == null && size == null) {
+            return ResponseEntity.ok(documentService.getDocumentsByTopic(topicId));
+        }
+        int pageNum = page != null ? page : 1;
+        int pageSize = size != null ? size : 10;
+        return ResponseEntity.ok(documentService.getDocumentsByTopicPaged(topicId, pageNum, pageSize));
     }
 
     @Operation(summary = "Create document record")

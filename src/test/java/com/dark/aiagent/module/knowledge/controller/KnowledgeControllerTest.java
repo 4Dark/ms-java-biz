@@ -19,6 +19,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import com.dark.aiagent.domain.knowledge.entity.KnowledgeTopic;
+import com.dark.aiagent.domain.knowledge.entity.KnowledgeDocument;
+import com.dark.aiagent.domain.common.PageResult;
 import com.dark.aiagent.domain.knowledge.repository.KnowledgeTopicRepository;
 import com.dark.aiagent.application.knowledge.service.KnowledgeDocumentApplicationService;
 import com.dark.aiagent.interfaces.knowledge.controller.KnowledgeController;
@@ -90,5 +92,51 @@ class KnowledgeControllerTest {
 
         verify(topicRepository).deleteById(topicId);
         verify(documentService).getDocumentsByTopic(topicId);
+    }
+
+    // LK-04: GET /documents without pagination -> 返回列表
+    @Test
+    @DisplayName("LK-04: 不带分页参数获取文档列表时，返回原始文档列表数组")
+    void shouldReturnPlainListWhenNoPaginationParams() throws Exception {
+        String topicId = "topic-123";
+        KnowledgeDocument doc = new KnowledgeDocument(
+                "doc-1", topicId, "文档1", "CREATED", "Antigravity", "path/to/file",
+                null, null, null, null, null, null, null
+        );
+
+        when(documentService.getDocumentsByTopic(topicId)).thenReturn(List.of(doc));
+
+        mockMvc.perform(get("/rest/biz/v1/knowledge/documents").param("topicId", topicId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].id").value("doc-1"))
+                .andExpect(jsonPath("$[0].title").value("文档1"));
+    }
+
+    // LK-05: GET /documents with pagination -> 返回 PageResult
+    @Test
+    @DisplayName("LK-05: 带分页参数获取文档列表时，返回 PageResult 分页包装对象")
+    void shouldReturnPageResultWhenPaginationParamsProvided() throws Exception {
+        String topicId = "topic-123";
+        KnowledgeDocument doc = new KnowledgeDocument(
+                "doc-1", topicId, "文档1", "CREATED", "Antigravity", "path/to/file",
+                null, null, null, null, null, null, null
+        );
+
+        PageResult<KnowledgeDocument> pageResult = new PageResult<>(List.of(doc), 1L, 10L, 1L, 1L);
+
+        when(documentService.getDocumentsByTopicPaged(topicId, 1, 10)).thenReturn(pageResult);
+
+        mockMvc.perform(get("/rest/biz/v1/knowledge/documents")
+                .param("topicId", topicId)
+                .param("page", "1")
+                .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.records").isArray())
+                .andExpect(jsonPath("$.records[0].id").value("doc-1"))
+                .andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.size").value(10))
+                .andExpect(jsonPath("$.current").value(1))
+                .andExpect(jsonPath("$.pages").value(1));
     }
 }

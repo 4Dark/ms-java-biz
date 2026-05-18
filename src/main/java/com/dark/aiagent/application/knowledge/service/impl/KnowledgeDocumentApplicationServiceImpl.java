@@ -18,6 +18,7 @@ import com.dark.aiagent.application.knowledge.service.KnowledgeDocumentApplicati
 import com.dark.aiagent.domain.knowledge.entity.KnowledgeDocument;
 import com.dark.aiagent.domain.knowledge.repository.KnowledgeDocumentRepository;
 import com.dark.aiagent.domain.knowledge.valueobject.KnowledgeConfig;
+import com.dark.aiagent.domain.common.PageResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
@@ -107,6 +108,11 @@ public class KnowledgeDocumentApplicationServiceImpl
     @Override
     public java.util.List<KnowledgeDocument> getDocumentsByTopic(String topicId) {
         return documentRepository.findByTopicId(topicId);
+    }
+
+    @Override
+    public PageResult<KnowledgeDocument> getDocumentsByTopicPaged(String topicId, int page, int size) {
+        return documentRepository.findByTopicIdPaged(topicId, page, size);
     }
 
     @Override

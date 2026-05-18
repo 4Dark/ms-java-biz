@@ -1,6 +1,7 @@
 package com.dark.aiagent.domain.knowledge.repository;
 
 import com.dark.aiagent.domain.knowledge.entity.KnowledgeDocument;
+import com.dark.aiagent.domain.common.PageResult;
 import java.util.Optional;
 
 /**
@@ -13,4 +14,5 @@ public interface KnowledgeDocumentRepository {
     void update(KnowledgeDocument document);
     void deleteById(String id);
     java.util.List<KnowledgeDocument> findByTopicId(String topicId);
+    PageResult<KnowledgeDocument> findByTopicIdPaged(String topicId, int page, int size);
 }
