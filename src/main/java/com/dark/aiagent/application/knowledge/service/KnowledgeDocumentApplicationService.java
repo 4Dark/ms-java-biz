@@ -1,6 +1,7 @@
 package com.dark.aiagent.application.knowledge.service;
 
 import com.dark.aiagent.domain.knowledge.entity.KnowledgeDocument;
+import com.dark.aiagent.domain.common.PageResult;
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
@@ -15,4 +16,5 @@ public interface KnowledgeDocumentApplicationService {
     void deleteDocument(String documentId);
     Map<String, Object> initiateIngest(String documentId, Map<String, Object> ingestPayload);
     java.util.List<KnowledgeDocument> getDocumentsByTopic(String topicId);
+    PageResult<KnowledgeDocument> getDocumentsByTopicPaged(String topicId, int page, int size);
 }

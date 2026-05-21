@@ -26,7 +26,7 @@ public final class RemoteApiConstants {
         /**
          * 知识库文档分块入库接口
          */
-        public static final String KNOWLEDGE_DOCUMENT_INGEST = "/rest/kb/v1/documents/ingest";
+        public static final String KNOWLEDGE_DOCUMENT_INGEST = "/rest/agent/v1/documents/ingest";
         
     }
     

@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 @Tag(name = "用户微服务接口")
 @RestController
-@RequestMapping("/rest/dark/v1/user")
+@RequestMapping("/rest/biz/v1/user")
 public class UserController {
 
     @Operation(summary = "获取当前网关透传登录人信息")

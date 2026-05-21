@@ -105,6 +105,8 @@ langchain4j:
 app:
   jwt:
     secret: ${JWT_SECRET:your-256-bit-secret-your-256-bit-secret}
+  mcp:
+    local-server-base-url: ${LOCAL_SERVER_BASE_URL:http://localhost:${server.port}}
   security:
     ignore:
       urls:
@@ -120,5 +122,6 @@ app:
         - /rest/biz/v1/mcp-plugins/enabled
   knowledge:
     upload-dir: ${KNOWLEDGE_UPLOAD_DIR:/tmp/ai_knowledge_uploads}
+    recipe-dir: ${KNOWLEDGE_RECIPE_DIR:/tmp/ai_knowledge_uploads/recipes}
   flyway:
     manual-trigger: true       # 手动触发开关，由 FlywayConfig.onApplicationReady 使用

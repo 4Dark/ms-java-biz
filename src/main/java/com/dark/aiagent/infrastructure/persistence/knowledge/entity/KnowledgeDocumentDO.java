@@ -7,6 +7,7 @@ import com.dark.aiagent.infrastructure.persistence.handler.PostgresJacksonTypeHa
 import com.dark.aiagent.domain.knowledge.valueobject.KnowledgeConfig;
 import lombok.Data;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * 知识库文档持久化数据对象 (Data Object)
@@ -25,6 +26,13 @@ public class KnowledgeDocumentDO {
 
     @TableField(typeHandler = PostgresJacksonTypeHandler.class)
     private KnowledgeConfig configJson;
+
+    private String fileHash;
+    private String docType;
+    private String category;
+
+    @TableField(typeHandler = PostgresJacksonTypeHandler.class)
+    private Map<String, Object> metadata;
 
     private Date createTime;
     private Date updateTime;

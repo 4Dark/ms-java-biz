@@ -2,6 +2,8 @@ package com.dark.aiagent.domain.knowledge.entity;
 
 import com.dark.aiagent.domain.knowledge.valueobject.KnowledgeConfig;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -15,6 +17,10 @@ public class KnowledgeDocument {
     private String author;
     private String filePath;
     private KnowledgeConfig config;
+    private String fileHash;
+    private String docType;
+    private String category;
+    private Map<String, Object> metadata;
     private Date createTime;
     private Date updateTime;
 
@@ -33,8 +39,30 @@ public class KnowledgeDocument {
         this.filePath = filePath;
         this.config = config;
         this.status = "CREATED"; // 初始业务状态
+        this.docType = "general";
+        this.fileHash = "";
+        this.category = "其他";
+        this.metadata = new HashMap<>();
         this.createTime = new Date();
         this.updateTime = new Date();
+    }
+
+    // 完整的构造函数，方便持久化层还原领域模型
+    public KnowledgeDocument(String id, String topicId, String title, String status, String author, String filePath, KnowledgeConfig config, String fileHash, String docType, String category, Map<String, Object> metadata, Date createTime, Date updateTime) {
+        if (id == null || id.isBlank()) throw new IllegalArgumentException("ID cannot be null or empty");
+        this.id = id;
+        this.topicId = topicId;
+        this.title = title;
+        this.status = status;
+        this.author = author;
+        this.filePath = filePath;
+        this.config = config;
+        this.fileHash = fileHash != null ? fileHash : "";
+        this.docType = docType != null ? docType : "general";
+        this.category = category != null ? category : "其他";
+        this.metadata = metadata != null ? metadata : new HashMap<>();
+        this.createTime = createTime != null ? createTime : new Date();
+        this.updateTime = updateTime != null ? updateTime : new Date();
     }
 
     // 行为封装：状态的改变必须通过具有业务语义的方法进行
@@ -58,6 +86,16 @@ public class KnowledgeDocument {
         this.status = "FAILED";
         this.updateTime = new Date();
     }
+
+    public void updateMetadata(Map<String, Object> newMetadata) {
+        this.metadata = newMetadata != null ? newMetadata : new HashMap<>();
+        this.updateTime = new Date();
+    }
+
+    public void updateFileHash(String newHash) {
+        this.fileHash = newHash != null ? newHash : "";
+        this.updateTime = new Date();
+    }
     
     // 仅提供 Getter
     public String getId() { return id; }
@@ -67,6 +105,10 @@ public class KnowledgeDocument {
     public String getAuthor() { return author; }
     public String getFilePath() { return filePath; }
     public KnowledgeConfig getConfig() { return config; }
+    public String getFileHash() { return fileHash; }
+    public String getDocType() { return docType; }
+    public String getCategory() { return category; }
+    public Map<String, Object> getMetadata() { return metadata; }
     public Date getCreateTime() { return createTime; }
     public Date getUpdateTime() { return updateTime; }
 
@@ -84,3 +126,4 @@ public class KnowledgeDocument {
         return Objects.hash(id);
     }
 }
+

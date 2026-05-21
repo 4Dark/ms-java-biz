@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "Time Limited Event Console")
 @RestController
-@RequestMapping("/rest/dark/v1/time-limit-events")
+@RequestMapping("/rest/biz/v1/time-limit-events")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class TimeLimitedEventController {

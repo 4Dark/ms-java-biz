@@ -20,6 +20,7 @@ import com.dark.aiagent.mcp.McpProtocol;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import com.dark.aiagent.config.McpProperties;
 import reactor.core.publisher.Mono;
 
 @Slf4j
@@ -30,17 +31,28 @@ public class McpProxyService {
     private final McpPluginRepository pluginRepository;
     private final ObjectMapper objectMapper;
     private final WebClient.Builder vanillaWebClientBuilder;
-
-    @org.springframework.beans.factory.annotation.Value("${server.port:8080}")
-    private int serverPort;
+    private final McpProperties mcpProperties;
 
     public McpProxyService(McpToolCacheMapper toolCacheMapper, McpPluginRepository pluginRepository,
             ObjectMapper objectMapper,
-            @Qualifier("vanillaWebClientBuilder") WebClient.Builder webClientBuilder) {
+            @Qualifier("vanillaWebClientBuilder") WebClient.Builder webClientBuilder,
+            McpProperties mcpProperties) {
         this.toolCacheMapper = toolCacheMapper;
         this.pluginRepository = pluginRepository;
         this.objectMapper = objectMapper;
         this.vanillaWebClientBuilder = webClientBuilder;
+        this.mcpProperties = mcpProperties;
+    }
+
+    private String resolveLocalUrl(String sseUrl) {
+        if (!sseUrl.startsWith("/")) {
+            return sseUrl;
+        }
+        String baseUrl = mcpProperties.getLocalServerBaseUrl();
+        if (baseUrl.endsWith("/")) {
+            baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+        }
+        return baseUrl + sseUrl;
     }
 
     public List<McpProtocol.ToolDefinition> getDynamicTools() {
@@ -81,12 +93,7 @@ public class McpProxyService {
 
     private Mono<McpProtocol.ToolResult> executeRemoteCall(String sseUrl, String toolName,
             JsonNode arguments) {
-        String finalSseUrl = sseUrl;
-        if (sseUrl.startsWith("/")) {
-            finalSseUrl = "http://localhost:" + serverPort + sseUrl;
-        }
-        
-        final String effectiveSseUrl = finalSseUrl;
+        final String effectiveSseUrl = resolveLocalUrl(sseUrl);
         WebClient client = vanillaWebClientBuilder.clone().baseUrl(effectiveSseUrl).build();
         AtomicReference<String> messageEndpoint = new AtomicReference<>();
 

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -22,6 +23,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.dark.aiagent.config.McpProperties;
 import com.dark.aiagent.domain.mcp.McpPlugin;
 import com.dark.aiagent.domain.mcp.repository.McpPluginRepository;
 import com.dark.aiagent.infrastructure.persistence.entity.McpToolCacheDO;
@@ -44,15 +46,18 @@ class McpProxyServiceTest {
     private WebClient.Builder webClientBuilder;
     @Mock
     private WebClient webClient;
+    @Mock
+    private McpProperties mcpProperties;
 
     private McpProxyService mcpProxyService;
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     void setUp() {
+        lenient().when(mcpProperties.getLocalServerBaseUrl()).thenReturn("http://localhost:8080");
         when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
-        mcpProxyService = new McpProxyService(toolCacheMapper, pluginRepository, objectMapper, webClientBuilder);
+        mcpProxyService = new McpProxyService(toolCacheMapper, pluginRepository, objectMapper, webClientBuilder, mcpProperties);
     }
 
     @Test
