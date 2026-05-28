@@ -30,8 +30,10 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        String[] ignoreUrls = ignoreWhiteProperties.getUrls().toArray(new String[0]);
-
+        java.util.List<String> urls = new java.util.ArrayList<>(ignoreWhiteProperties.getUrls());
+        // The following paths should be configured via `ignoreWhiteProperties.urls` in application.yml
+        // e.g., /rest/biz/v1/ephemeral/**, /s/**, /ws/ephemeral/**
+        String[] ignoreUrls = urls.toArray(new String[0]);
         http
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

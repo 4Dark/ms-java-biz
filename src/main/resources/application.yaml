@@ -31,6 +31,15 @@ spring:
   data:
     mongodb:
       uri: ${MONGODB_URI:mongodb://localhost:27017/chat_memory_db}
+    # Redis - 阅后即焚 TTL 驱动（将在 Nacos 配置中心覆盖）
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 4
   # PostgreSQL - 将在 Nacos 配置中心配置
   datasource:
     driver-class-name: org.postgresql.Driver
@@ -120,8 +129,19 @@ app:
         - /mcp/**
         - /sse/**
         - /rest/biz/v1/mcp-plugins/enabled
+        # 阅后即焚通讯空间（匿名访问）
+        - /s/**
+        - /rest/biz/v1/ephemeral/**
+        - /ws/ephemeral/**
   knowledge:
     upload-dir: ${KNOWLEDGE_UPLOAD_DIR:/tmp/ai_knowledge_uploads}
     recipe-dir: ${KNOWLEDGE_RECIPE_DIR:/tmp/ai_knowledge_uploads/recipes}
   flyway:
     manual-trigger: true       # 手动触发开关，由 FlywayConfig.onApplicationReady 使用
+
+# 阅后即焚通讯空间配置
+ephemeral:
+  default-ttl-seconds: 3600        # 默认存活 1 小时
+  max-ttl-seconds: 604800          # 最大存活 7 天
+  activity-extend-seconds: 1800    # 每次活跃延长 30 分钟
+  cleanup-cron: "0 */5 * * * *"   # 每 5 分钟清理一次过期房间
