@@ -112,6 +112,7 @@ langchain4j:
       index-list-size: 100
 
 app:
+  frontend-url: ${FRONTEND_URL:https://122577.xyz}
   jwt:
     secret: ${JWT_SECRET:your-256-bit-secret-your-256-bit-secret}
   mcp:

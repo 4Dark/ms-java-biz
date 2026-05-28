@@ -52,13 +52,13 @@ class ShortLinkControllerTest {
     }
 
     @Test
-    void redirect_without_referer_should_redirect_relatively() throws Exception {
+    void redirect_without_referer_should_redirect_to_default_frontend() throws Exception {
         EphemeralRoom room = EphemeralRoom.create("room123", "PklcS100", "Test", 3600, "creator");
         when(useCase.findRoom("PklcS100")).thenReturn(Optional.of(room));
 
         mockMvc.perform(get("/s/PklcS100"))
                 .andExpect(status().isFound())
-                .andExpect(header().string("Location", "/room/PklcS100"))
+                .andExpect(header().string("Location", "https://122577.xyz/room/PklcS100"))
                 .andExpect(header().string("X-Robots-Tag", "noindex, nofollow"));
     }
 
