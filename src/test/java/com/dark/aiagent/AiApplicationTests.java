@@ -8,6 +8,9 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
 import com.dark.aiagent.domain.event.repository.EventRepository;
 import com.dark.aiagent.domain.mcp.repository.McpPluginRepository;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -23,6 +26,15 @@ class AiApplicationTests {
 
     @MockBean
     private McpPluginRepository mcpPluginRepository;
+
+    @MockBean
+    private RedisConnectionFactory redisConnectionFactory;
+
+    @MockBean
+    private StringRedisTemplate stringRedisTemplate;
+
+    @MockBean
+    private RedisMessageListenerContainer redisMessageListenerContainer;
 
     @BeforeEach
     void setup() {

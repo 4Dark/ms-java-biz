@@ -69,3 +69,14 @@ trigger: always_on
 
 # Key Context (关键背景)
 这是一个核心业务服务 (`ms-java-biz`)。它连接 Nacos 进行服务注册，提供具体的业务工具（如 `query_order` 查订单, `search_knowledge` 查知识库），并通过 MCP SSE 供 ms-py-agent 远程调用。
+
+# API Naming Convention (接口命名规范)
+12. **路由前缀约定**:
+    - 所有对前端暴露的业务端点，必须使用标准前缀 `/rest/biz/v1/...`。
+    - 严禁使用随意的自定义前缀（如 `/api/dark/v1` 等）。
+    - 所有的 API 定义文档也必须基于该前缀统一输出至 `/docs/api-contracts`。
+
+# Local Development & Restart Guide (本地开发与重启指南)
+- **端口配置**: 默认运行在 `8080` 端口。
+- **VS Code 启动配置**: 位于 `.vscode/launch.json` 中。
+- **AI 自动重启要求**: AI 在需要重启服务时，必须读取该目录下的 `launch.json` 文件以提取正确的环境变量和参数（或直接使用基于 `launch.json` 的调试任务）进行重启，确保环境配置一致。
