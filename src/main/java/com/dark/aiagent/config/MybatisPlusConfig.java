@@ -15,7 +15,10 @@ import com.dark.aiagent.infrastructure.persistence.handler.PostgresUuidTypeHandl
  */
 @Configuration
 @MapperScan(
-    basePackages = "com.dark.aiagent.infrastructure.persistence.**.mapper",
+    basePackages = {
+        "com.dark.aiagent.infrastructure.persistence.**.mapper",
+        "com.dark.aiagent.module.**.mapper"
+    },
     annotationClass = org.apache.ibatis.annotations.Mapper.class
 )
 public class MybatisPlusConfig {
