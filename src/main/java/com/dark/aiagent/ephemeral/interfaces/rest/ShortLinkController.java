@@ -34,6 +34,9 @@ public class ShortLinkController {
     private final String defaultFrontendUrl;
     private final String productionBaseDomain;
 
+    /** 默认兜底的前端基地址，作为配置文件意外丢失时的物理防线 */
+    private static final String FALLBACK_FRONTEND_URL = "https://122577.xyz";
+
     /** 前端房间页路径前缀（由 application.yaml 配置） */
     private static final String FRONTEND_ROOM_BASE = "/#/room/";
 
@@ -47,8 +50,9 @@ public class ShortLinkController {
             EphemeralRoomUseCase useCase,
             @Value("${app.frontend-url}") String defaultFrontendUrl) {
         this.useCase = useCase;
-        this.defaultFrontendUrl = defaultFrontendUrl;
-        this.productionBaseDomain = extractBaseDomain(defaultFrontendUrl);
+        this.defaultFrontendUrl = (defaultFrontendUrl != null && !defaultFrontendUrl.isBlank())
+                ? defaultFrontendUrl : FALLBACK_FRONTEND_URL;
+        this.productionBaseDomain = extractBaseDomain(this.defaultFrontendUrl);
     }
 
     /**
@@ -63,18 +67,32 @@ public class ShortLinkController {
             @RequestHeader(value = "X-Forwarded-Host", required = false) String forwardedHost,
             @RequestHeader(value = "X-Forwarded-Proto", required = false) String forwardedProto) {
         return useCase.findRoom(code).map(room -> {
-            HttpHeaders headers = new HttpHeaders();
-            String base = getFrontendBase(referer, forwardedHost, forwardedProto);
-            if (base.isEmpty()) {
-                base = defaultFrontendUrl;
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                String base = getFrontendBase(referer, forwardedHost, forwardedProto);
+                if (base == null || base.isEmpty()) {
+                    base = defaultFrontendUrl;
+                }
+                if (base.endsWith("/")) {
+                    base = base.substring(0, base.length() - 1);
+                }
+                headers.setLocation(URI.create(base + FRONTEND_ROOM_BASE + code));
+                // 禁止搜索引擎爬取，防止社交平台缓存 any 预览信息
+                headers.set("X-Robots-Tag", "noindex, nofollow");
+                return new ResponseEntity<Void>(headers, HttpStatus.FOUND);
+            } catch (Exception e) {
+                log.error("【ShortLink】重定向构造发生异常，启动防御性降级。code={} referer={} forwardedHost={} forwardedProto={}",
+                        code, referer, forwardedHost, forwardedProto, e);
+                // 100% 防御性安全降级重定向，即使代码抛出 any 异常，依然确保用户可以被平滑引导至生产可用前端
+                HttpHeaders fallbackHeaders = new HttpHeaders();
+                String fallbackBase = defaultFrontendUrl;
+                if (fallbackBase.endsWith("/")) {
+                    fallbackBase = fallbackBase.substring(0, fallbackBase.length() - 1);
+                }
+                fallbackHeaders.setLocation(URI.create(fallbackBase + FRONTEND_ROOM_BASE + code));
+                fallbackHeaders.set("X-Robots-Tag", "noindex, nofollow");
+                return new ResponseEntity<Void>(fallbackHeaders, HttpStatus.FOUND);
             }
-            if (base.endsWith("/")) {
-                base = base.substring(0, base.length() - 1);
-            }
-            headers.setLocation(URI.create(base + FRONTEND_ROOM_BASE + code));
-            // 禁止搜索引擎爬取，防止社交平台缓存任何预览信息
-            headers.set("X-Robots-Tag", "noindex, nofollow");
-            return new ResponseEntity<Void>(headers, HttpStatus.FOUND);
         }).orElseGet(() -> {
             log.info("【ShortLink】短链已过期或已销毁 code={}", code);
             return ResponseEntity.status(HttpStatus.GONE).build();
@@ -114,8 +132,16 @@ public class ShortLinkController {
 
         // 2. 否则，优先使用访问时的实际请求域名 (X-Forwarded-Host)
         if (forwardedHost != null && !forwardedHost.isBlank()) {
+            String host = forwardedHost.trim();
+            // 解决多级反向代理场景下 X-Forwarded-Host 产生的以逗号分隔的域名列表
+            if (host.contains(",")) {
+                host = host.split(",")[0].trim();
+            }
             String scheme = (forwardedProto != null && !forwardedProto.isBlank()) ? forwardedProto : "https";
-            return scheme + "://" + forwardedHost.trim();
+            if (scheme.contains(",")) {
+                scheme = scheme.split(",")[0].trim();
+            }
+            return scheme + "://" + host;
         }
 
         // 3. 降级使用 Referer Base
