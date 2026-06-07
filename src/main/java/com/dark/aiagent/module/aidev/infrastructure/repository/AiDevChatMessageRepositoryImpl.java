@@ -47,7 +47,8 @@ public class AiDevChatMessageRepositoryImpl implements AiDevChatMessageRepositor
                 po.getTaskId(),
                 po.getSenderRole(),
                 po.getContent(),
-                po.getCreateTime()
+                po.getCreateTime(),
+                po.getIsProcessed()
         );
     }
 
@@ -58,6 +59,7 @@ public class AiDevChatMessageRepositoryImpl implements AiDevChatMessageRepositor
         po.setSenderRole(entity.getSenderRole());
         po.setContent(entity.getContent());
         po.setCreateTime(entity.getCreateTime());
+        po.setIsProcessed(entity.getIsProcessed());
         return po;
     }
 }

@@ -1,6 +1,6 @@
 package com.dark.aiagent.module.aidev.interfaces.rest;
 
-import com.dark.aiagent.module.aidev.application.AiDevTaskUseCase;
+import com.dark.aiagent.module.aidev.application.AiDevIntegrationUseCase;
 import com.dark.aiagent.module.aidev.domain.entity.AiDevTask;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,9 +12,9 @@ import java.util.stream.Collectors;
 @RequestMapping("/rest/biz/v1/ai-dev/tasks")
 public class AiDevTaskController {
 
-    private final AiDevTaskUseCase useCase;
+    private final AiDevIntegrationUseCase useCase;
 
-    public AiDevTaskController(AiDevTaskUseCase useCase) {
+    public AiDevTaskController(AiDevIntegrationUseCase useCase) {
         this.useCase = useCase;
     }
 
@@ -50,6 +50,17 @@ public class AiDevTaskController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * 更新任务的头脑风暴配置参数（最大轮数 & 滑动窗口条数）。
+     */
+    @PutMapping("/{id}/config")
+    public ResponseEntity<Void> updateTaskConfig(
+            @PathVariable String id,
+            @RequestBody AiDevConfigRequest request) {
+        useCase.updateTaskConfig(id, request.maxBrainstormingRounds(), request.contextSlidingWindow());
+        return ResponseEntity.ok().build();
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable String id) {
         useCase.deleteTask(id);
@@ -64,7 +75,8 @@ public class AiDevTaskController {
                         msg.getTaskId(),
                         msg.getSenderRole(),
                         msg.getContent(),
-                        msg.getCreateTime()
+                        msg.getCreateTime(),
+                        msg.getIsProcessed()
                 ))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
@@ -78,8 +90,16 @@ public class AiDevTaskController {
                 msg.getTaskId(),
                 msg.getSenderRole(),
                 msg.getContent(),
-                msg.getCreateTime()
+                msg.getCreateTime(),
+                msg.getIsProcessed()
         ));
+    }
+
+    @PostMapping("/callback")
+    public ResponseEntity<Void> handleWebhook(@RequestBody java.util.Map<String, Object> payload) {
+        // TODO: Parse Hermes Webhook payload and save to ai_dev_chat_message
+        System.out.println("Received Hermes Webhook: " + payload);
+        return ResponseEntity.ok().build();
     }
 
     private AiDevTaskResponse toResponse(AiDevTask task) {
@@ -91,7 +111,12 @@ public class AiDevTaskController {
                 task.getBranchName(),
                 task.getTotalCost(),
                 task.getCreateTime(),
-                task.getUpdateTime()
+                task.getUpdateTime(),
+                task.getMaxBrainstormingRounds(),
+                task.getContextSlidingWindow()
         );
     }
+
+    /** 头脑风暴配置更新请求 */
+    public record AiDevConfigRequest(int maxBrainstormingRounds, int contextSlidingWindow) {}
 }

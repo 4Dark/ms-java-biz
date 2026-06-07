@@ -14,6 +14,7 @@ public class AiDevChatMessagePO {
     private String senderRole;
     private String content;
     private OffsetDateTime createTime;
+    private Boolean isProcessed;
 
     public String getId() {
         return id;
@@ -53,5 +54,13 @@ public class AiDevChatMessagePO {
 
     public void setCreateTime(OffsetDateTime createTime) {
         this.createTime = createTime;
+    }
+
+    public Boolean getIsProcessed() {
+        return isProcessed;
+    }
+
+    public void setIsProcessed(Boolean isProcessed) {
+        this.isProcessed = isProcessed;
     }
 }

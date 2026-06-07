@@ -4,6 +4,7 @@ import com.dark.aiagent.module.aidev.domain.entity.AiDevChatMessage;
 import com.dark.aiagent.module.aidev.domain.entity.AiDevTask;
 import com.dark.aiagent.module.aidev.domain.repository.AiDevChatMessageRepository;
 import com.dark.aiagent.module.aidev.domain.repository.AiDevTaskRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
@@ -12,19 +13,19 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * AI 开发任务应用服务。
+ * AI 开发任务应用服务 (轨道 A: 适配器模式)。
  *
- * <p>职责边界：本服务只负责数据库的读写操作。
- * ms-ai-devops 是一个独立的常驻服务，通过轮询数据库来拾取和执行任务。
- * ms-java-biz 不再负责启动任何 Python 子进程。
+ * <p>职责边界：本服务负责 PostgreSQL 数据库的读写操作。
+ * ms-ai-devops 将拉起 Hermes CLI 执行任务并使用 Webhook 回调。
  */
 @Service
-public class AiDevTaskUseCase {
+@ConditionalOnProperty(name = "ai-dev.integration.mode", havingValue = "ADAPTER", matchIfMissing = true)
+public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCase {
 
     private final AiDevTaskRepository repository;
     private final AiDevChatMessageRepository chatMessageRepository;
 
-    public AiDevTaskUseCase(AiDevTaskRepository repository, AiDevChatMessageRepository chatMessageRepository) {
+    public AdapterAiDevIntegrationUseCaseImpl(AiDevTaskRepository repository, AiDevChatMessageRepository chatMessageRepository) {
         this.repository = repository;
         this.chatMessageRepository = chatMessageRepository;
     }
@@ -100,15 +101,34 @@ public class AiDevTaskUseCase {
     }
 
     public AiDevChatMessage addHumanMessage(String taskId, String content) {
+        // ms-java-biz 只负责写入人类消息，后续由 ms-ai-devops 常驻进程去轮询判断是否包含 @ 并响应
+        Boolean isProcessed = false;
         AiDevChatMessage message = new AiDevChatMessage(
                 UUID.randomUUID().toString(),
                 taskId,
                 "HUMAN",
                 content,
-                OffsetDateTime.now()
+                OffsetDateTime.now(),
+                isProcessed
         );
         chatMessageRepository.save(message);
         return message;
+    }
+
+    /**
+     * 更新任务的头脑风暴配置参数，写入 PostgreSQL。
+     */
+    @Override
+    public void updateTaskConfig(String id, int maxBrainstormingRounds, int contextSlidingWindow) {
+        AiDevTask task = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Task not found: " + id));
+        AiDevTask updated = new AiDevTask(
+                task.getId(), task.getTitle(), task.getDescription(),
+                task.getStatus(), task.getBranchName(), task.getTotalCost(),
+                task.getHumanFeedback(), task.getCreateTime(), OffsetDateTime.now(),
+                maxBrainstormingRounds, contextSlidingWindow
+        );
+        repository.save(updated);
     }
 
     public void deleteTask(String id) {

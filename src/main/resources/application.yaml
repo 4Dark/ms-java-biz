@@ -146,3 +146,7 @@ ephemeral:
   max-ttl-seconds: 604800          # 最大存活 7 天
   activity-extend-seconds: 1800    # 每次活跃延长 30 分钟
   cleanup-cron: "0 */5 * * * *"   # 每 5 分钟清理一次过期房间
+ai-dev:
+  integration:
+    mode: ADAPTER
+

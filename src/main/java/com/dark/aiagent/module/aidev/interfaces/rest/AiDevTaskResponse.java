@@ -10,6 +10,8 @@ public record AiDevTaskResponse(
         String branchName,
         Double totalCost,
         OffsetDateTime createTime,
-        OffsetDateTime updateTime
+        OffsetDateTime updateTime,
+        Integer maxBrainstormingRounds,
+        Integer contextSlidingWindow
 ) {
 }

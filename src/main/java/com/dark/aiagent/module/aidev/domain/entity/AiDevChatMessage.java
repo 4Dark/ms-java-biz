@@ -9,17 +9,19 @@ public class AiDevChatMessage {
     private String senderRole;
     private String content;
     private OffsetDateTime createTime;
+    private Boolean isProcessed;
 
     private AiDevChatMessage() {
         // Default constructor for reflective frameworks like MyBatis
     }
 
-    public AiDevChatMessage(String id, String taskId, String senderRole, String content, OffsetDateTime createTime) {
+    public AiDevChatMessage(String id, String taskId, String senderRole, String content, OffsetDateTime createTime, Boolean isProcessed) {
         this.id = id;
         this.taskId = taskId;
         this.senderRole = senderRole;
         this.content = content;
         this.createTime = createTime;
+        this.isProcessed = isProcessed;
     }
 
     public String getId() {
@@ -40,6 +42,10 @@ public class AiDevChatMessage {
 
     public OffsetDateTime getCreateTime() {
         return createTime;
+    }
+
+    public Boolean getIsProcessed() {
+        return isProcessed;
     }
 
     // Methods for state transitions or behavior if necessary

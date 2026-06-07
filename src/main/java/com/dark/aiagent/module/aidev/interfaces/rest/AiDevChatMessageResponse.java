@@ -7,5 +7,6 @@ public record AiDevChatMessageResponse(
         String taskId,
         String senderRole,
         String content,
-        OffsetDateTime createTime
+        OffsetDateTime createTime,
+        Boolean isProcessed
 ) {}
