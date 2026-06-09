@@ -183,6 +183,94 @@ class AiDevAgentProfileUseCaseTest {
         assertEquals("sk-new-key", specificProviderMap.get("api_key"));
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    void shouldSyncToLocalWhenUpdatingProfileInAdapterMode() throws Exception {
+        File hermesDir = tempDir.toFile();
+        File kanbanDbFile = new File(hermesDir, "kanban.db");
+
+        injectField(useCase, "integrationMode", "ADAPTER");
+        injectField(useCase, "kanbanDbPath", kanbanDbFile.getAbsolutePath());
+
+        AiDevAgentProfile plannerProfile = new AiDevAgentProfile(
+                "node-plan", "PLANNER", null, null, null, "psychology", "Prompt", 
+                OffsetDateTime.now(), OffsetDateTime.now()
+        );
+        when(repository.findByRoleName("PLANNER")).thenReturn(Optional.of(plannerProfile));
+        doNothing().when(repository).save(any());
+
+        // 执行修改
+        useCase.updateProfile("PLANNER", "http://new.api/v1", "sk-new-key", "gpt-4o", "psychology", "New Prompt");
+
+        // 验证数据库被保存
+        verify(repository, times(1)).save(plannerProfile);
+
+        // 验证本地 yaml 写入成功
+        File configFile = new File(new File(new File(hermesDir, "profiles"), "planner"), "config.yaml");
+        assertTrue(configFile.exists());
+
+        org.yaml.snakeyaml.Yaml yaml = new org.yaml.snakeyaml.Yaml();
+        java.util.Map<String, Object> configMap;
+        try (java.io.InputStream in = new java.io.FileInputStream(configFile)) {
+            configMap = yaml.load(in);
+        }
+        assertNotNull(configMap);
+        java.util.Map<String, Object> modelMap = (java.util.Map<String, Object>) configMap.get("model");
+        assertEquals("gpt-4o", modelMap.get("default"));
+        assertEquals("http://new.api/v1", modelMap.get("base_url"));
+        assertEquals("openai", modelMap.get("provider"));
+
+        java.util.Map<String, Object> providersMap = (java.util.Map<String, Object>) configMap.get("providers");
+        java.util.Map<String, Object> specificProviderMap = (java.util.Map<String, Object>) providersMap.get("openai");
+        assertEquals("sk-new-key", specificProviderMap.get("api_key"));
+
+        // 验证本地 SOUL.md 写入成功
+        File soulFile = new File(new File(new File(hermesDir, "profiles"), "planner"), "SOUL.md");
+        assertTrue(soulFile.exists());
+        String soulContent = new String(java.nio.file.Files.readAllBytes(soulFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+        assertEquals("New Prompt", soulContent);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void shouldSyncToLocalWhenGettingProfilesInAdapterMode() throws Exception {
+        File hermesDir = tempDir.toFile();
+        File kanbanDbFile = new File(hermesDir, "kanban.db");
+
+        injectField(useCase, "integrationMode", "ADAPTER");
+        injectField(useCase, "kanbanDbPath", kanbanDbFile.getAbsolutePath());
+
+        AiDevAgentProfile plannerProfile = new AiDevAgentProfile(
+                "node-plan", "PLANNER", "http://db.api/v1", "sk-db-key", "gpt-4o", "psychology", "DB Prompt", 
+                OffsetDateTime.now(), OffsetDateTime.now()
+        );
+        when(repository.findAll()).thenReturn(List.of(plannerProfile));
+
+        // 调用 getAllProfiles() 应该触发 DB -> 本地同步
+        List<AiDevAgentProfile> result = useCase.getAllProfiles();
+        assertEquals(1, result.size());
+
+        // 验证本地 yaml 写入成功
+        File configFile = new File(new File(new File(hermesDir, "profiles"), "planner"), "config.yaml");
+        assertTrue(configFile.exists());
+
+        org.yaml.snakeyaml.Yaml yaml = new org.yaml.snakeyaml.Yaml();
+        java.util.Map<String, Object> configMap;
+        try (java.io.InputStream in = new java.io.FileInputStream(configFile)) {
+            configMap = yaml.load(in);
+        }
+        assertNotNull(configMap);
+        java.util.Map<String, Object> modelMap = (java.util.Map<String, Object>) configMap.get("model");
+        assertEquals("gpt-4o", modelMap.get("default"));
+        assertEquals("http://db.api/v1", modelMap.get("base_url"));
+
+        // 验证本地 SOUL.md 写入成功
+        File soulFile = new File(new File(new File(hermesDir, "profiles"), "planner"), "SOUL.md");
+        assertTrue(soulFile.exists());
+        String soulContent = new String(java.nio.file.Files.readAllBytes(soulFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+        assertEquals("DB Prompt", soulContent);
+    }
+
     private void injectField(Object target, String fieldName, Object value) throws Exception {
         java.lang.reflect.Field field = target.getClass().getDeclaredField(fieldName);
         field.setAccessible(true);

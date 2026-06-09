@@ -25,4 +25,11 @@ public interface ChatRepository {
      * 删除指定会话及其所有消息
      */
     void deleteSession(String sessionId);
+
+    /**
+     * 更新消息评分
+     * @param messageId 消息ID
+     * @param rating 评分: "good", "bad", 或 null (取消评分)
+     */
+    void updateRating(Long messageId, String rating);
 }

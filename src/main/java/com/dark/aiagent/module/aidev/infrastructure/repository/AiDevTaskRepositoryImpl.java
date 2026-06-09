@@ -63,7 +63,10 @@ public class AiDevTaskRepositoryImpl implements AiDevTaskRepository {
                 po.getTotalCost(),
                 po.getHumanFeedback(),
                 po.getCreateTime(),
-                po.getUpdateTime()
+                po.getUpdateTime(),
+                po.getMaxBrainstormingRounds(),
+                po.getContextSlidingWindow(),
+                po.getRelatedWorkspaces()
         );
     }
 
@@ -78,6 +81,9 @@ public class AiDevTaskRepositoryImpl implements AiDevTaskRepository {
         po.setHumanFeedback(domain.getHumanFeedback());
         po.setCreateTime(domain.getCreateTime());
         po.setUpdateTime(domain.getUpdateTime());
+        po.setMaxBrainstormingRounds(domain.getMaxBrainstormingRounds());
+        po.setContextSlidingWindow(domain.getContextSlidingWindow());
+        po.setRelatedWorkspaces(domain.getRelatedWorkspaces());
         return po;
     }
 }

@@ -2,9 +2,11 @@ package com.dark.aiagent.module.aidev.application;
 
 import com.dark.aiagent.module.aidev.domain.entity.AiDevChatMessage;
 import com.dark.aiagent.module.aidev.domain.entity.AiDevTask;
+import com.dark.aiagent.module.aidev.interfaces.rest.AiDevTokenSummaryResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.sql.*;
 import java.time.Instant;
@@ -51,6 +53,12 @@ public class NativeAiDevIntegrationServiceImpl implements AiDevIntegrationUseCas
             default:
                 return sqliteStatus.toUpperCase();
         }
+    }
+
+    @Override
+    public AiDevTokenSummaryResponse getTokenSummary(String taskId) {
+        // Native 模式下不记录 token 消耗，返回空数据
+        return new AiDevTokenSummaryResponse(0, 0, 0.0, 0, new ArrayList<>());
     }
 
     @Override
@@ -129,7 +137,7 @@ public class NativeAiDevIntegrationServiceImpl implements AiDevIntegrationUseCas
     }
 
     @Override
-    public AiDevTask createTask(String description) {
+    public AiDevTask createTask(String description, java.util.List<String> relatedWorkspaces) {
         String id = UUID.randomUUID().toString();
         String title = description.length() > 50 ? description.substring(0, 50) + "..." : description;
         long now = Instant.now().getEpochSecond();
@@ -144,7 +152,7 @@ public class NativeAiDevIntegrationServiceImpl implements AiDevIntegrationUseCas
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return new AiDevTask(id, title, description, "TRIAGE", null, 0.0, null, toOffsetDateTime(now), toOffsetDateTime(now));
+        return new AiDevTask(id, title, description, "TRIAGE", null, 0.0, null, toOffsetDateTime(now), toOffsetDateTime(now), 5, 3, relatedWorkspaces);
     }
 
     @Override
@@ -202,6 +210,17 @@ public class NativeAiDevIntegrationServiceImpl implements AiDevIntegrationUseCas
         }
     }
 
+    @Override
+    public void reopenTask(String id) {
+        try (Connection conn = DriverManager.getConnection(getDbUrl());
+             PreparedStatement pstmt = conn.prepareStatement("UPDATE tasks SET status = 'triage', branch_name = NULL WHERE id = ?")) {
+            pstmt.setString(1, id);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * 更新任务的头脑风暴配置参数（写入 SQLite）。
      * 在写入前调用自愈逻辑，确保列存在。
@@ -239,5 +258,15 @@ public class NativeAiDevIntegrationServiceImpl implements AiDevIntegrationUseCas
             }
         }
     }
-}
 
+    @Override
+    public void processWebhookEvent(java.util.Map<String, Object> payload) {
+        // 原生模式下不处理 Webhook
+        System.out.println("[NATIVE] Ignored webhook event: " + payload);
+    }
+
+    @Override
+    public SseEmitter subscribe(String taskId) {
+        throw new UnsupportedOperationException("Native mode does not support SSE subscriptions.");
+    }
+}

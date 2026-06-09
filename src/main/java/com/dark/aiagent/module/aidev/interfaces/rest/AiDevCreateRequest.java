@@ -6,5 +6,6 @@ package com.dark.aiagent.module.aidev.interfaces.rest;
  * ms-ai-devops 常驻服务将自动轮询并拾取执行。
  *
  * @param description 任务的自然语言描述
+ * @param relatedWorkspaces 关联的前端填入的工程名列表
  */
-public record AiDevCreateRequest(String description) {}
+public record AiDevCreateRequest(String description, java.util.List<String> relatedWorkspaces) {}

@@ -31,6 +31,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         java.util.List<String> urls = new java.util.ArrayList<>(ignoreWhiteProperties.getUrls());
+        urls.add("/rest/biz/v1/ai-dev/tasks/callback");
         // The following paths should be configured via `ignoreWhiteProperties.urls` in application.yml
         // e.g., /rest/biz/v1/ephemeral/**, /s/**, /ws/ephemeral/**
         String[] ignoreUrls = urls.toArray(new String[0]);

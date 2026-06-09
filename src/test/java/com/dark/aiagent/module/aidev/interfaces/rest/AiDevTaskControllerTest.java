@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = AiDevTaskController.class)
+@org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc(addFilters = false)
 class AiDevTaskControllerTest {
 
     @Autowired
@@ -75,5 +76,15 @@ class AiDevTaskControllerTest {
                 .andExpect(status().isOk());
 
         verify(aiDevTaskUseCase, times(1)).deleteTask("task-123");
+    }
+
+    @Test
+    void shouldReopenTask() throws Exception {
+        doNothing().when(aiDevTaskUseCase).reopenTask("task-123");
+
+        mockMvc.perform(post("/rest/biz/v1/ai-dev/tasks/task-123/reopen"))
+                .andExpect(status().isOk());
+
+        verify(aiDevTaskUseCase, times(1)).reopenTask("task-123");
     }
 }

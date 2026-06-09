@@ -64,7 +64,7 @@ public class AiDevAgentProfileUseCase {
 
     @SuppressWarnings("unchecked")
     private AiDevAgentProfile syncProfileFromLocal(AiDevAgentProfile profile) {
-        if (!"NATIVE".equalsIgnoreCase(integrationMode)) {
+        if (!"NATIVE".equalsIgnoreCase(integrationMode) && !"ADAPTER".equalsIgnoreCase(integrationMode)) {
             return profile;
         }
 
@@ -76,48 +76,67 @@ public class AiDevAgentProfileUseCase {
             String profileDirName = getProfileDirName(profile.getRoleName());
             if (profileDirName == null) return profile;
 
-            // 优先读取 profile 目录下的 config.yaml，如果没有则读取全局 config.yaml
-            java.io.File configFile = new java.io.File(new java.io.File(new java.io.File(hermesDir, "profiles"), profileDirName), "config.yaml");
+            java.io.File profileDir = new java.io.File(new java.io.File(hermesDir, "profiles"), profileDirName);
+            java.io.File configFile = new java.io.File(profileDir, "config.yaml");
+            java.io.File soulFile = new java.io.File(profileDir, "SOUL.md");
+
             if (!configFile.exists()) {
                 configFile = new java.io.File(hermesDir, "config.yaml");
             }
-            if (!configFile.exists()) {
+            if (!configFile.exists() && !soulFile.exists()) {
+                if ("ADAPTER".equalsIgnoreCase(integrationMode)) {
+                    syncProfileToLocal(profile.getRoleName(), profile.getBaseUrl(), profile.getApiToken(), profile.getModelName(), profile.getSystemPrompt());
+                }
                 return profile;
             }
 
-            org.yaml.snakeyaml.Yaml yaml = new org.yaml.snakeyaml.Yaml();
-            java.util.Map<String, Object> configMap;
-            try (java.io.InputStream in = new java.io.FileInputStream(configFile)) {
-                configMap = yaml.load(in);
-            }
-            if (configMap == null) return profile;
+            String finalModelName = profile.getModelName();
+            String finalBaseUrl = profile.getBaseUrl();
+            String finalApiToken = profile.getApiToken();
 
-            java.util.Map<String, Object> modelMap = (java.util.Map<String, Object>) configMap.get("model");
-            if (modelMap == null) return profile;
-
-            String modelName = (String) modelMap.get("default");
-            String baseUrl = (String) modelMap.get("base_url");
-            String provider = (String) modelMap.get("provider");
-
-            String apiToken = "";
-            java.util.Map<String, Object> providersMap = (java.util.Map<String, Object>) configMap.get("providers");
-            if (providersMap != null && provider != null) {
-                java.util.Map<String, Object> specificProviderMap = (java.util.Map<String, Object>) providersMap.get(provider);
-                if (specificProviderMap != null) {
-                    apiToken = (String) specificProviderMap.get("api_key");
+            if (configFile.exists()) {
+                org.yaml.snakeyaml.Yaml yaml = new org.yaml.snakeyaml.Yaml();
+                java.util.Map<String, Object> configMap;
+                try (java.io.InputStream in = new java.io.FileInputStream(configFile)) {
+                    configMap = yaml.load(in);
+                }
+                if (configMap != null) {
+                    java.util.Map<String, Object> modelMap = (java.util.Map<String, Object>) configMap.get("model");
+                    if (modelMap != null) {
+                        finalModelName = (String) modelMap.getOrDefault("default", finalModelName);
+                        finalBaseUrl = (String) modelMap.getOrDefault("base_url", finalBaseUrl);
+                        String provider = (String) modelMap.get("provider");
+                        java.util.Map<String, Object> providersMap = (java.util.Map<String, Object>) configMap.get("providers");
+                        if (providersMap != null && provider != null) {
+                            java.util.Map<String, Object> specificProviderMap = (java.util.Map<String, Object>) providersMap.get(provider);
+                            if (specificProviderMap != null && specificProviderMap.get("api_key") != null) {
+                                finalApiToken = (String) specificProviderMap.get("api_key");
+                            }
+                        }
+                    }
                 }
             }
 
-            // 在 NATIVE 模式下，本地配置文件具有最高优先级，直接覆盖数据库的值以保持同步
-            String finalBaseUrl = (baseUrl != null) ? baseUrl : (profile.getBaseUrl() != null ? profile.getBaseUrl() : "");
-            String finalApiToken = (apiToken != null) ? apiToken : (profile.getApiToken() != null ? profile.getApiToken() : "");
-            String finalModelName = (modelName != null && !modelName.isBlank()) ? modelName : profile.getModelName();
-
             // 读取同目录下的 SOUL.md 作为 systemPrompt
-            String soulContent = readSoulMd(configFile.getParentFile());
+            String soulContent = readSoulMd(profileDir);
             String finalSystemPrompt = (soulContent != null && !soulContent.isBlank()) ? soulContent : profile.getSystemPrompt();
 
-            profile.updateProfile(finalBaseUrl, finalApiToken, finalModelName, profile.getAvatar(), finalSystemPrompt);
+            // 如果本地文件有更新，同步到数据库
+            boolean isModified = !java.util.Objects.equals(finalModelName, profile.getModelName()) ||
+                                 !java.util.Objects.equals(finalBaseUrl, profile.getBaseUrl()) ||
+                                 !java.util.Objects.equals(finalApiToken, profile.getApiToken()) ||
+                                 !java.util.Objects.equals(finalSystemPrompt, profile.getSystemPrompt());
+
+            if (isModified) {
+                profile.updateProfile(finalBaseUrl, finalApiToken, finalModelName, profile.getAvatar(), finalSystemPrompt);
+                repository.save(profile);
+            }
+
+            // 确保本地文件完整存在
+            if ("ADAPTER".equalsIgnoreCase(integrationMode)) {
+                syncProfileToLocal(profile.getRoleName(), profile.getBaseUrl(), profile.getApiToken(), profile.getModelName(), profile.getSystemPrompt());
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -139,7 +158,7 @@ public class AiDevAgentProfileUseCase {
 
     @SuppressWarnings("unchecked")
     private void syncProfileToLocal(String roleName, String baseUrl, String apiToken, String modelName, String systemPrompt) {
-        if (!"NATIVE".equalsIgnoreCase(integrationMode)) {
+        if (!"NATIVE".equalsIgnoreCase(integrationMode) && !"ADAPTER".equalsIgnoreCase(integrationMode)) {
             return;
         }
         try {
@@ -177,7 +196,7 @@ public class AiDevAgentProfileUseCase {
             modelMap.put("default", modelName);
             modelMap.put("base_url", baseUrl != null ? baseUrl : "");
 
-            String provider = "openai";
+            String provider = "openai-api";
             if (baseUrl != null) {
                 String lower = baseUrl.toLowerCase();
                 if (lower.contains("googleapis") || lower.contains("google")) {

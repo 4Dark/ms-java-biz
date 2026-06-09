@@ -11,9 +11,10 @@ public class ChatMessage {
     private final String sessionId;
     private final String role;
     private final String content;
+    private final String rating;
     private final LocalDateTime createdAt;
 
-    public ChatMessage(Long id, String sessionId, String role, String content, LocalDateTime createdAt) {
+    public ChatMessage(Long id, String sessionId, String role, String content, String rating, LocalDateTime createdAt) {
         if (sessionId == null || sessionId.isBlank()) {
             throw new IllegalArgumentException("Session ID cannot be empty");
         }
@@ -27,11 +28,12 @@ public class ChatMessage {
         this.sessionId = sessionId;
         this.role = role;
         this.content = content;
+        this.rating = rating;
         this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
     }
 
     public static ChatMessage create(String sessionId, String role, String content) {
-        return new ChatMessage(null, sessionId, role, content, LocalDateTime.now());
+        return new ChatMessage(null, sessionId, role, content, null, LocalDateTime.now());
     }
 
     public Long getId() {
@@ -48,6 +50,10 @@ public class ChatMessage {
 
     public String getContent() {
         return content;
+    }
+
+    public String getRating() {
+        return rating;
     }
 
     public LocalDateTime getCreatedAt() {

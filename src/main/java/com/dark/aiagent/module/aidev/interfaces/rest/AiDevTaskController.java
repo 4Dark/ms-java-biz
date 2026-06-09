@@ -4,6 +4,7 @@ import com.dark.aiagent.module.aidev.application.AiDevIntegrationUseCase;
 import com.dark.aiagent.module.aidev.domain.entity.AiDevTask;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,7 +34,7 @@ public class AiDevTaskController {
      */
     @PostMapping
     public ResponseEntity<AiDevTaskResponse> createTask(@RequestBody AiDevCreateRequest request) {
-        AiDevTask task = useCase.createTask(request.description());
+        AiDevTask task = useCase.createTask(request.description(), request.relatedWorkspaces());
         return ResponseEntity.ok(toResponse(task));
     }
 
@@ -47,6 +48,12 @@ public class AiDevTaskController {
     @PostMapping("/{id}/rollback")
     public ResponseEntity<Void> rollbackTask(@PathVariable String id) {
         useCase.rollbackTask(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/reopen")
+    public ResponseEntity<Void> reopenTask(@PathVariable String id) {
+        useCase.reopenTask(id);
         return ResponseEntity.ok().build();
     }
 
@@ -82,6 +89,17 @@ public class AiDevTaskController {
         return ResponseEntity.ok(responses);
     }
 
+    @GetMapping("/{id}/token-summary")
+    public ResponseEntity<AiDevTokenSummaryResponse> getTokenSummary(@PathVariable String id) {
+        AiDevTokenSummaryResponse summary = useCase.getTokenSummary(id);
+        return ResponseEntity.ok(summary);
+    }
+
+    @GetMapping(value = "/{id}/messages/stream", produces = org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter streamChatMessages(@PathVariable String id) {
+        return useCase.subscribe(id);
+    }
+
     @PostMapping("/{id}/messages")
     public ResponseEntity<AiDevChatMessageResponse> addHumanMessage(@PathVariable String id, @RequestBody AiDevMessageRequest request) {
         var msg = useCase.addHumanMessage(id, request.content());
@@ -97,8 +115,7 @@ public class AiDevTaskController {
 
     @PostMapping("/callback")
     public ResponseEntity<Void> handleWebhook(@RequestBody java.util.Map<String, Object> payload) {
-        // TODO: Parse Hermes Webhook payload and save to ai_dev_chat_message
-        System.out.println("Received Hermes Webhook: " + payload);
+        useCase.processWebhookEvent(payload);
         return ResponseEntity.ok().build();
     }
 

@@ -2,8 +2,12 @@ package com.dark.aiagent.module.aidev.application;
 
 import com.dark.aiagent.module.aidev.domain.entity.AiDevChatMessage;
 import com.dark.aiagent.module.aidev.domain.entity.AiDevTask;
+import com.dark.aiagent.module.aidev.domain.entity.AiDevAuditLog;
 import com.dark.aiagent.module.aidev.domain.repository.AiDevChatMessageRepository;
 import com.dark.aiagent.module.aidev.domain.repository.AiDevTaskRepository;
+import com.dark.aiagent.module.aidev.domain.repository.AiDevAuditLogRepository;
+import com.dark.aiagent.module.aidev.interfaces.rest.AiDevTokenSummaryResponse;
+import com.dark.aiagent.module.aidev.interfaces.rest.AiDevTokenSummaryResponse.PhaseMetric;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
@@ -11,6 +15,9 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
  * AI 开发任务应用服务 (轨道 A: 适配器模式)。
@@ -24,10 +31,15 @@ public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCa
 
     private final AiDevTaskRepository repository;
     private final AiDevChatMessageRepository chatMessageRepository;
+    private final AiDevAuditLogRepository auditLogRepository;
+    
+    private final ConcurrentHashMap<String, CopyOnWriteArrayList<SseEmitter>> taskEmitters = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, StringBuilder> activeMessageBuffer = new ConcurrentHashMap<>();
 
-    public AdapterAiDevIntegrationUseCaseImpl(AiDevTaskRepository repository, AiDevChatMessageRepository chatMessageRepository) {
+    public AdapterAiDevIntegrationUseCaseImpl(AiDevTaskRepository repository, AiDevChatMessageRepository chatMessageRepository, AiDevAuditLogRepository auditLogRepository) {
         this.repository = repository;
         this.chatMessageRepository = chatMessageRepository;
+        this.auditLogRepository = auditLogRepository;
     }
 
     public List<AiDevTask> getAllTasks() {
@@ -36,6 +48,25 @@ public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCa
 
     public Optional<AiDevTask> getTaskById(String id) {
         return repository.findById(id);
+    }
+
+    @Override
+    public AiDevTokenSummaryResponse getTokenSummary(String taskId) {
+        List<PhaseMetric> phaseMetrics = auditLogRepository.getAggregatedMetricsByTask(taskId);
+        
+        int totalPrompt = 0;
+        int totalComp = 0;
+        double totalCost = 0.0;
+        int totalDuration = 0;
+        
+        for (PhaseMetric metric : phaseMetrics) {
+            totalPrompt += metric.promptTokens();
+            totalComp += metric.completionTokens();
+            totalCost += metric.cost();
+            totalDuration += metric.durationMs();
+        }
+        
+        return new AiDevTokenSummaryResponse(totalPrompt, totalComp, totalCost, totalDuration, phaseMetrics);
     }
 
     public List<AiDevChatMessage> getChatMessages(String taskId) {
@@ -49,11 +80,11 @@ public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCa
      * @param description 自然语言任务描述
      * @return 新创建的任务
      */
-    public AiDevTask createTask(String description) {
+    public AiDevTask createTask(String description, java.util.List<String> relatedWorkspaces) {
         String taskId = UUID.randomUUID().toString();
         String title = description.length() > 50 ? description.substring(0, 50) + "..." : description;
         OffsetDateTime now = OffsetDateTime.now();
-        AiDevTask task = new AiDevTask(taskId, title, description, "PENDING", null, 0.0, null, now, now);
+        AiDevTask task = new AiDevTask(taskId, title, description, "PENDING", null, 0.0, null, now, now, 5, 3, relatedWorkspaces);
         repository.save(task);
         return task;
     }
@@ -77,7 +108,9 @@ public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCa
         AiDevTask updated = new AiDevTask(
                 task.getId(), task.getTitle(), task.getDescription(),
                 "WAITING_RESUME", task.getBranchName(), task.getTotalCost(),
-                content, task.getCreateTime(), OffsetDateTime.now()
+                content, task.getCreateTime(), OffsetDateTime.now(),
+                task.getMaxBrainstormingRounds(), task.getContextSlidingWindow(),
+                task.getRelatedWorkspaces()
         );
         repository.save(updated);
     }
@@ -95,7 +128,9 @@ public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCa
         AiDevTask updated = new AiDevTask(
                 task.getId(), task.getTitle(), task.getDescription(),
                 "ROLLBACK_REQUESTED", task.getBranchName(), task.getTotalCost(),
-                task.getHumanFeedback(), task.getCreateTime(), OffsetDateTime.now()
+                task.getHumanFeedback(), task.getCreateTime(), OffsetDateTime.now(),
+                task.getMaxBrainstormingRounds(), task.getContextSlidingWindow(),
+                task.getRelatedWorkspaces()
         );
         repository.save(updated);
     }
@@ -126,7 +161,8 @@ public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCa
                 task.getId(), task.getTitle(), task.getDescription(),
                 task.getStatus(), task.getBranchName(), task.getTotalCost(),
                 task.getHumanFeedback(), task.getCreateTime(), OffsetDateTime.now(),
-                maxBrainstormingRounds, contextSlidingWindow
+                maxBrainstormingRounds, contextSlidingWindow,
+                task.getRelatedWorkspaces()
         );
         repository.save(updated);
     }
@@ -134,5 +170,203 @@ public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCa
     public void deleteTask(String id) {
         chatMessageRepository.deleteByTaskId(id);
         repository.deleteById(id);
+    }
+
+    @Override
+    public void reopenTask(String id) {
+        AiDevTask task = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Task not found: " + id));
+        AiDevTask updated = new AiDevTask(
+                task.getId(), task.getTitle(), task.getDescription(),
+                "PENDING", null, 0.0, null, task.getCreateTime(), OffsetDateTime.now(),
+                task.getMaxBrainstormingRounds(), task.getContextSlidingWindow(),
+                task.getRelatedWorkspaces()
+        );
+        repository.save(updated);
+    }
+
+    public SseEmitter subscribe(String taskId) {
+        SseEmitter emitter = new SseEmitter(0L); // 0L means no timeout
+        taskEmitters.computeIfAbsent(taskId, k -> new CopyOnWriteArrayList<>()).add(emitter);
+        
+        Runnable onComplete = () -> {
+            CopyOnWriteArrayList<SseEmitter> list = taskEmitters.get(taskId);
+            if (list != null) {
+                list.remove(emitter);
+                if (list.isEmpty()) {
+                    taskEmitters.remove(taskId);
+                }
+            }
+        };
+        emitter.onCompletion(onComplete);
+        emitter.onTimeout(onComplete);
+        emitter.onError(e -> onComplete.run());
+        return emitter;
+    }
+
+    private void broadcastSseEvent(String taskId, Object data) {
+        CopyOnWriteArrayList<SseEmitter> emitters = taskEmitters.get(taskId);
+        if (emitters != null) {
+            for (SseEmitter emitter : emitters) {
+                try {
+                    emitter.send(data);
+                } catch (Exception e) {
+                    emitter.completeWithError(e);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void processWebhookEvent(java.util.Map<String, Object> payload) {
+        String eventType = (String) payload.get("eventType");
+        String taskId = (String) payload.get("taskId");
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) payload.get("payload");
+
+        if (eventType == null || taskId == null) {
+            System.err.println("[Webhook] Invalid payload missing eventType or taskId: " + payload);
+            return;
+        }
+
+        AiDevTask task = repository.findById(taskId).orElse(null);
+        if (task == null) {
+            System.err.println("[Webhook] Task not found for ID: " + taskId);
+            return;
+        }
+
+        switch (eventType) {
+            case "TASK_COMPLETED":
+                repository.save(new AiDevTask(
+                        task.getId(), task.getTitle(), task.getDescription(),
+                        "COMPLETED", task.getBranchName(), task.getTotalCost(),
+                        task.getHumanFeedback(), task.getCreateTime(), OffsetDateTime.now(),
+                        task.getMaxBrainstormingRounds(), task.getContextSlidingWindow(),
+                        task.getRelatedWorkspaces()
+                ));
+                break;
+            case "CHAT_REPLY":
+                String reply = (String) data.get("reply");
+                String senderRole = (String) data.get("senderRole");
+                if (senderRole == null || senderRole.isBlank()) {
+                    senderRole = "AI";
+                }
+                if (reply != null && !reply.isBlank()) {
+                    AiDevChatMessage message = new AiDevChatMessage(
+                            UUID.randomUUID().toString(),
+                            taskId,
+                            senderRole,
+                            reply,
+                            OffsetDateTime.now(),
+                            true
+                    );
+                    chatMessageRepository.save(message);
+                }
+                broadcastSseEvent(taskId, payload);
+                break;
+            case "CHAT_CHUNK":
+                String chunk = (String) data.get("chunk");
+                String chunkRole = (String) data.get("senderRole");
+                if (chunkRole == null || chunkRole.isBlank()) chunkRole = "AI";
+                Boolean isFirst = (Boolean) data.get("isFirst");
+                
+                String bufferKey = taskId + ":" + chunkRole;
+                if (Boolean.TRUE.equals(isFirst)) {
+                    activeMessageBuffer.put(bufferKey, new StringBuilder(chunk));
+                } else {
+                    StringBuilder sb = activeMessageBuffer.get(bufferKey);
+                    if (sb != null) {
+                        sb.append(chunk);
+                    } else {
+                        activeMessageBuffer.put(bufferKey, new StringBuilder(chunk));
+                    }
+                }
+                broadcastSseEvent(taskId, payload);
+                break;
+            case "CHAT_COMPLETED":
+                String compRole = (String) data.get("senderRole");
+                if (compRole == null || compRole.isBlank()) compRole = "AI";
+                String compKey = taskId + ":" + compRole;
+                StringBuilder fullMessageSb = activeMessageBuffer.remove(compKey);
+                if (fullMessageSb != null) {
+                    String fullMessage = fullMessageSb.toString();
+                    if (!fullMessage.isBlank()) {
+                        AiDevChatMessage message = new AiDevChatMessage(
+                                UUID.randomUUID().toString(),
+                                taskId,
+                                compRole,
+                                fullMessage,
+                                OffsetDateTime.now(),
+                                true
+                        );
+                        chatMessageRepository.save(message);
+                    }
+                }
+                broadcastSseEvent(taskId, payload);
+                break;
+            case "TOKEN_USAGE":
+                String agentRole = (String) data.get("agentRole");
+                String providerModel = (String) data.get("providerModel");
+                String actionType = (String) data.get("actionType");
+                Integer promptTokens = getInteger(data.get("promptTokens"));
+                Integer compTokens = getInteger(data.get("compTokens"));
+                Double cost = getDouble(data.get("cost"));
+                Integer durationMs = getInteger(data.get("durationMs"));
+
+                AiDevAuditLog log = new AiDevAuditLog(
+                        UUID.randomUUID().toString(),
+                        taskId,
+                        agentRole != null ? agentRole : "SYSTEM",
+                        providerModel != null ? providerModel : "unknown",
+                        actionType != null ? actionType : "UNKNOWN",
+                        promptTokens,
+                        compTokens,
+                        cost,
+                        durationMs,
+                        OffsetDateTime.now()
+                );
+                auditLogRepository.save(log);
+
+                // Update total cost in Task
+                AiDevTask existingTask = repository.findById(taskId).orElse(null);
+                if (existingTask != null && cost > 0) {
+                    Double newCost = existingTask.getTotalCost() + cost;
+                    repository.save(new AiDevTask(
+                            existingTask.getId(), existingTask.getTitle(), existingTask.getDescription(),
+                            existingTask.getStatus(), existingTask.getBranchName(), newCost,
+                            existingTask.getHumanFeedback(), existingTask.getCreateTime(), existingTask.getUpdateTime(),
+                            existingTask.getMaxBrainstormingRounds(), existingTask.getContextSlidingWindow(),
+                            existingTask.getRelatedWorkspaces()
+                    ));
+                }
+                
+                broadcastSseEvent(taskId, payload);
+                break;
+            case "ERROR":
+                String error = (String) data.get("error");
+                repository.save(new AiDevTask(
+                        task.getId(), task.getTitle(), task.getDescription(),
+                        "FAILED", task.getBranchName(), task.getTotalCost(),
+                        task.getHumanFeedback(), task.getCreateTime(), OffsetDateTime.now(),
+                        task.getMaxBrainstormingRounds(), task.getContextSlidingWindow(),
+                        task.getRelatedWorkspaces()
+                ));
+                System.err.println("[Webhook] Task " + taskId + " failed: " + error);
+                break;
+            default:
+                System.out.println("[Webhook] Unhandled eventType: " + eventType);
+        }
+    }
+
+    private Integer getInteger(Object val) {
+        if (val == null) return 0;
+        if (val instanceof Number) return ((Number) val).intValue();
+        return Integer.parseInt(val.toString());
+    }
+
+    private Double getDouble(Object val) {
+        if (val == null) return 0.0;
+        if (val instanceof java.math.BigDecimal) return ((java.math.BigDecimal) val).doubleValue();
+        if (val instanceof Number) return ((Number) val).doubleValue();
+        return Double.parseDouble(val.toString());
     }
 }

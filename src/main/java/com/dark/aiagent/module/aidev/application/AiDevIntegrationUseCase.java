@@ -2,6 +2,8 @@ package com.dark.aiagent.module.aidev.application;
 
 import com.dark.aiagent.module.aidev.domain.entity.AiDevChatMessage;
 import com.dark.aiagent.module.aidev.domain.entity.AiDevTask;
+import com.dark.aiagent.module.aidev.interfaces.rest.AiDevTokenSummaryResponse;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,13 +17,15 @@ import java.util.Optional;
  */
 public interface AiDevIntegrationUseCase {
 
+    AiDevTokenSummaryResponse getTokenSummary(String taskId);
+
     List<AiDevTask> getAllTasks();
 
     Optional<AiDevTask> getTaskById(String id);
 
     List<AiDevChatMessage> getChatMessages(String taskId);
 
-    AiDevTask createTask(String description);
+    AiDevTask createTask(String description, java.util.List<String> relatedWorkspaces);
 
     void resumeTask(String id, String feedback);
 
@@ -39,4 +43,16 @@ public interface AiDevIntegrationUseCase {
     void updateTaskConfig(String id, int maxBrainstormingRounds, int contextSlidingWindow);
 
     void deleteTask(String id);
+
+    void reopenTask(String id);
+
+    /**
+     * 处理由独立调度器（如 ms-ai-devops）通过 Webhook 发送的事件回调。
+     */
+    void processWebhookEvent(java.util.Map<String, Object> payload);
+
+    /**
+     * 订阅任务的 SSE 事件。
+     */
+    SseEmitter subscribe(String taskId);
 }

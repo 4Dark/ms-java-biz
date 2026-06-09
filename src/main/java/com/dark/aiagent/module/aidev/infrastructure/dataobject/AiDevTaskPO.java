@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.OffsetDateTime;
 
-@TableName("ai_dev_task")
+@TableName(value = "ai_dev_task", autoResultMap = true)
 public class AiDevTaskPO {
     
     @TableId(type = IdType.INPUT)
@@ -19,6 +19,11 @@ public class AiDevTaskPO {
     private String humanFeedback;
     private OffsetDateTime createTime;
     private OffsetDateTime updateTime;
+    private Integer maxBrainstormingRounds;
+    private Integer contextSlidingWindow;
+
+    @com.baomidou.mybatisplus.annotation.TableField(typeHandler = com.dark.aiagent.infrastructure.persistence.handler.PostgresJacksonTypeHandler.class)
+    private java.util.List<String> relatedWorkspaces;
 
     // Getters and Setters
     public String getId() { return id; }
@@ -47,4 +52,13 @@ public class AiDevTaskPO {
     
     public OffsetDateTime getUpdateTime() { return updateTime; }
     public void setUpdateTime(OffsetDateTime updateTime) { this.updateTime = updateTime; }
+
+    public Integer getMaxBrainstormingRounds() { return maxBrainstormingRounds; }
+    public void setMaxBrainstormingRounds(Integer maxBrainstormingRounds) { this.maxBrainstormingRounds = maxBrainstormingRounds; }
+
+    public Integer getContextSlidingWindow() { return contextSlidingWindow; }
+    public void setContextSlidingWindow(Integer contextSlidingWindow) { this.contextSlidingWindow = contextSlidingWindow; }
+
+    public java.util.List<String> getRelatedWorkspaces() { return relatedWorkspaces; }
+    public void setRelatedWorkspaces(java.util.List<String> relatedWorkspaces) { this.relatedWorkspaces = relatedWorkspaces; }
 }

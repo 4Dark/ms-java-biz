@@ -15,14 +15,15 @@ public class AiDevTask {
     private OffsetDateTime updateTime;
     private Integer maxBrainstormingRounds;
     private Integer contextSlidingWindow;
+    private java.util.List<String> relatedWorkspaces;
 
     private AiDevTask() {}
 
     public AiDevTask(String id, String title, String description, String status, String branchName, Double totalCost, String humanFeedback, OffsetDateTime createTime, OffsetDateTime updateTime) {
-        this(id, title, description, status, branchName, totalCost, humanFeedback, createTime, updateTime, 5, 3);
+        this(id, title, description, status, branchName, totalCost, humanFeedback, createTime, updateTime, 5, 3, new java.util.ArrayList<>());
     }
 
-    public AiDevTask(String id, String title, String description, String status, String branchName, Double totalCost, String humanFeedback, OffsetDateTime createTime, OffsetDateTime updateTime, Integer maxBrainstormingRounds, Integer contextSlidingWindow) {
+    public AiDevTask(String id, String title, String description, String status, String branchName, Double totalCost, String humanFeedback, OffsetDateTime createTime, OffsetDateTime updateTime, Integer maxBrainstormingRounds, Integer contextSlidingWindow, java.util.List<String> relatedWorkspaces) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -34,6 +35,7 @@ public class AiDevTask {
         this.updateTime = updateTime;
         this.maxBrainstormingRounds = maxBrainstormingRounds != null ? maxBrainstormingRounds : 5;
         this.contextSlidingWindow = contextSlidingWindow != null ? contextSlidingWindow : 3;
+        this.relatedWorkspaces = relatedWorkspaces != null ? relatedWorkspaces : new java.util.ArrayList<>();
     }
 
     public String getId() { return id; }
@@ -47,6 +49,7 @@ public class AiDevTask {
     public OffsetDateTime getUpdateTime() { return updateTime; }
     public Integer getMaxBrainstormingRounds() { return maxBrainstormingRounds; }
     public Integer getContextSlidingWindow() { return contextSlidingWindow; }
+    public java.util.List<String> getRelatedWorkspaces() { return relatedWorkspaces; }
 
     @Override
     public boolean equals(Object o) {

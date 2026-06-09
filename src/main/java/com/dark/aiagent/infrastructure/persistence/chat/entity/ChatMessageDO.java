@@ -23,5 +23,6 @@ public class ChatMessageDO {
     private String sessionId;
     private String role; // "user" or "ai"
     private String content;
+    private String rating;
     private LocalDateTime createdAt;
 }
