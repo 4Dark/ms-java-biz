@@ -72,7 +72,8 @@ public class AiDevTaskRepositoryImpl implements AiDevTaskRepository {
                 po.getConstraints(),
                 po.getPriority(),
                 po.getAffectedProjects(),
-                po.getLabels()
+                po.getLabels(),
+                po.getEngineMode()
         );
     }
 
@@ -96,6 +97,7 @@ public class AiDevTaskRepositoryImpl implements AiDevTaskRepository {
         po.setPriority(domain.getPriority());
         po.setAffectedProjects(domain.getAffectedProjects());
         po.setLabels(domain.getLabels());
+        po.setEngineMode(domain.getEngineMode());
         return po;
     }
 }

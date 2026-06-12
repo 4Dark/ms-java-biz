@@ -25,7 +25,7 @@ public interface AiDevIntegrationUseCase {
 
     List<AiDevChatMessage> getChatMessages(String taskId);
 
-    AiDevTask createTask(String title, String description, String targetBranch, String relatedIssues, String constraints, String priority, java.util.List<String> affectedProjects, java.util.List<String> labels, java.util.List<String> relatedWorkspaces);
+    AiDevTask createTask(String title, String description, String targetBranch, String relatedIssues, String constraints, String priority, java.util.List<String> affectedProjects, java.util.List<String> labels, java.util.List<String> relatedWorkspaces, String engineMode);
 
     void resumeTask(String id, String feedback);
 

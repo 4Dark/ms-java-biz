@@ -36,6 +36,8 @@ public class AiDevTaskPO {
     @com.baomidou.mybatisplus.annotation.TableField(typeHandler = com.dark.aiagent.infrastructure.persistence.handler.PostgresJacksonTypeHandler.class)
     private java.util.List<String> labels;
 
+    private String engineMode;
+
     // Getters and Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -90,4 +92,7 @@ public class AiDevTaskPO {
 
     public java.util.List<String> getLabels() { return labels; }
     public void setLabels(java.util.List<String> labels) { this.labels = labels; }
+
+    public String getEngineMode() { return engineMode; }
+    public void setEngineMode(String engineMode) { this.engineMode = engineMode; }
 }

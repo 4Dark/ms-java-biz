@@ -18,6 +18,7 @@ public record AiDevTaskResponse(
         String constraints,
         String priority,
         java.util.List<String> affectedProjects,
-        java.util.List<String> labels
+        java.util.List<String> labels,
+        String engineMode
 ) {
 }

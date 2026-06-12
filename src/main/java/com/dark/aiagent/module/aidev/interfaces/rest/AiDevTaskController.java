@@ -43,7 +43,8 @@ public class AiDevTaskController {
                 request.priority(),
                 request.affectedProjects(),
                 request.labels(),
-                request.affectedProjects() // map affectedProjects to relatedWorkspaces as well just in case
+                request.affectedProjects(), // map affectedProjects to relatedWorkspaces as well just in case
+                request.engineMode()
         );
         return ResponseEntity.ok(toResponse(task));
     }
@@ -146,7 +147,8 @@ public class AiDevTaskController {
                 task.getConstraints(),
                 task.getPriority(),
                 task.getAffectedProjects(),
-                task.getLabels()
+                task.getLabels(),
+                task.getEngineMode()
         );
     }
 
