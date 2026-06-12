@@ -66,7 +66,13 @@ public class AiDevTaskRepositoryImpl implements AiDevTaskRepository {
                 po.getUpdateTime(),
                 po.getMaxBrainstormingRounds(),
                 po.getContextSlidingWindow(),
-                po.getRelatedWorkspaces()
+                po.getRelatedWorkspaces(),
+                po.getTargetBranch(),
+                po.getRelatedIssues(),
+                po.getConstraints(),
+                po.getPriority(),
+                po.getAffectedProjects(),
+                po.getLabels()
         );
     }
 
@@ -84,6 +90,12 @@ public class AiDevTaskRepositoryImpl implements AiDevTaskRepository {
         po.setMaxBrainstormingRounds(domain.getMaxBrainstormingRounds());
         po.setContextSlidingWindow(domain.getContextSlidingWindow());
         po.setRelatedWorkspaces(domain.getRelatedWorkspaces());
+        po.setTargetBranch(domain.getTargetBranch());
+        po.setRelatedIssues(domain.getRelatedIssues());
+        po.setConstraints(domain.getConstraints());
+        po.setPriority(domain.getPriority());
+        po.setAffectedProjects(domain.getAffectedProjects());
+        po.setLabels(domain.getLabels());
         return po;
     }
 }

@@ -80,11 +80,11 @@ public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCa
      * @param description 自然语言任务描述
      * @return 新创建的任务
      */
-    public AiDevTask createTask(String description, java.util.List<String> relatedWorkspaces) {
+    public AiDevTask createTask(String title, String description, String targetBranch, String relatedIssues, String constraints, String priority, java.util.List<String> affectedProjects, java.util.List<String> labels, java.util.List<String> relatedWorkspaces) {
         String taskId = UUID.randomUUID().toString();
-        String title = description.length() > 50 ? description.substring(0, 50) + "..." : description;
+        String finalTitle = title != null && !title.isBlank() ? title : (description.length() > 50 ? description.substring(0, 50) + "..." : description);
         OffsetDateTime now = OffsetDateTime.now();
-        AiDevTask task = new AiDevTask(taskId, title, description, "PENDING", null, 0.0, null, now, now, 5, 3, relatedWorkspaces);
+        AiDevTask task = new AiDevTask(taskId, finalTitle, description, "PENDING", null, 0.0, null, now, now, 5, 3, relatedWorkspaces, targetBranch, relatedIssues, constraints, priority, affectedProjects, labels);
         repository.save(task);
         return task;
     }
@@ -110,7 +110,8 @@ public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCa
                 "WAITING_RESUME", task.getBranchName(), task.getTotalCost(),
                 content, task.getCreateTime(), OffsetDateTime.now(),
                 task.getMaxBrainstormingRounds(), task.getContextSlidingWindow(),
-                task.getRelatedWorkspaces()
+                task.getRelatedWorkspaces(),
+                task.getTargetBranch(), task.getRelatedIssues(), task.getConstraints(), task.getPriority(), task.getAffectedProjects(), task.getLabels()
         );
         repository.save(updated);
     }
@@ -130,7 +131,8 @@ public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCa
                 "ROLLBACK_REQUESTED", task.getBranchName(), task.getTotalCost(),
                 task.getHumanFeedback(), task.getCreateTime(), OffsetDateTime.now(),
                 task.getMaxBrainstormingRounds(), task.getContextSlidingWindow(),
-                task.getRelatedWorkspaces()
+                task.getRelatedWorkspaces(),
+                task.getTargetBranch(), task.getRelatedIssues(), task.getConstraints(), task.getPriority(), task.getAffectedProjects(), task.getLabels()
         );
         repository.save(updated);
     }
@@ -162,7 +164,8 @@ public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCa
                 task.getStatus(), task.getBranchName(), task.getTotalCost(),
                 task.getHumanFeedback(), task.getCreateTime(), OffsetDateTime.now(),
                 maxBrainstormingRounds, contextSlidingWindow,
-                task.getRelatedWorkspaces()
+                task.getRelatedWorkspaces(),
+                task.getTargetBranch(), task.getRelatedIssues(), task.getConstraints(), task.getPriority(), task.getAffectedProjects(), task.getLabels()
         );
         repository.save(updated);
     }
@@ -180,7 +183,8 @@ public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCa
                 task.getId(), task.getTitle(), task.getDescription(),
                 "PENDING", null, 0.0, null, task.getCreateTime(), OffsetDateTime.now(),
                 task.getMaxBrainstormingRounds(), task.getContextSlidingWindow(),
-                task.getRelatedWorkspaces()
+                task.getRelatedWorkspaces(),
+                task.getTargetBranch(), task.getRelatedIssues(), task.getConstraints(), task.getPriority(), task.getAffectedProjects(), task.getLabels()
         );
         repository.save(updated);
     }
@@ -241,8 +245,10 @@ public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCa
                         "COMPLETED", task.getBranchName(), task.getTotalCost(),
                         task.getHumanFeedback(), task.getCreateTime(), OffsetDateTime.now(),
                         task.getMaxBrainstormingRounds(), task.getContextSlidingWindow(),
-                        task.getRelatedWorkspaces()
+                        task.getRelatedWorkspaces(),
+                        task.getTargetBranch(), task.getRelatedIssues(), task.getConstraints(), task.getPriority(), task.getAffectedProjects(), task.getLabels()
                 ));
+                broadcastSseEvent(taskId, payload);
                 break;
             case "CHAT_REPLY":
                 String reply = (String) data.get("reply");
@@ -335,7 +341,8 @@ public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCa
                             existingTask.getStatus(), existingTask.getBranchName(), newCost,
                             existingTask.getHumanFeedback(), existingTask.getCreateTime(), existingTask.getUpdateTime(),
                             existingTask.getMaxBrainstormingRounds(), existingTask.getContextSlidingWindow(),
-                            existingTask.getRelatedWorkspaces()
+                            existingTask.getRelatedWorkspaces(),
+                            existingTask.getTargetBranch(), existingTask.getRelatedIssues(), existingTask.getConstraints(), existingTask.getPriority(), existingTask.getAffectedProjects(), existingTask.getLabels()
                     ));
                 }
                 
@@ -348,9 +355,11 @@ public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCa
                         "FAILED", task.getBranchName(), task.getTotalCost(),
                         task.getHumanFeedback(), task.getCreateTime(), OffsetDateTime.now(),
                         task.getMaxBrainstormingRounds(), task.getContextSlidingWindow(),
-                        task.getRelatedWorkspaces()
+                        task.getRelatedWorkspaces(),
+                        task.getTargetBranch(), task.getRelatedIssues(), task.getConstraints(), task.getPriority(), task.getAffectedProjects(), task.getLabels()
                 ));
                 System.err.println("[Webhook] Task " + taskId + " failed: " + error);
+                broadcastSseEvent(taskId, payload);
                 break;
             default:
                 System.out.println("[Webhook] Unhandled eventType: " + eventType);

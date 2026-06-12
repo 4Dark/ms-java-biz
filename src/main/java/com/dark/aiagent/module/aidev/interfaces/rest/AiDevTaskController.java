@@ -34,7 +34,17 @@ public class AiDevTaskController {
      */
     @PostMapping
     public ResponseEntity<AiDevTaskResponse> createTask(@RequestBody AiDevCreateRequest request) {
-        AiDevTask task = useCase.createTask(request.description(), request.relatedWorkspaces());
+        AiDevTask task = useCase.createTask(
+                request.title(),
+                request.description(),
+                request.targetBranch(),
+                request.relatedIssues(),
+                request.constraints(),
+                request.priority(),
+                request.affectedProjects(),
+                request.labels(),
+                request.affectedProjects() // map affectedProjects to relatedWorkspaces as well just in case
+        );
         return ResponseEntity.ok(toResponse(task));
     }
 
@@ -130,7 +140,13 @@ public class AiDevTaskController {
                 task.getCreateTime(),
                 task.getUpdateTime(),
                 task.getMaxBrainstormingRounds(),
-                task.getContextSlidingWindow()
+                task.getContextSlidingWindow(),
+                task.getTargetBranch(),
+                task.getRelatedIssues(),
+                task.getConstraints(),
+                task.getPriority(),
+                task.getAffectedProjects(),
+                task.getLabels()
         );
     }
 

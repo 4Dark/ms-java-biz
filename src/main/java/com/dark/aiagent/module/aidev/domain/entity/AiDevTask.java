@@ -16,14 +16,20 @@ public class AiDevTask {
     private Integer maxBrainstormingRounds;
     private Integer contextSlidingWindow;
     private java.util.List<String> relatedWorkspaces;
+    private String targetBranch;
+    private String relatedIssues;
+    private String constraints;
+    private String priority;
+    private java.util.List<String> affectedProjects;
+    private java.util.List<String> labels;
 
     private AiDevTask() {}
 
     public AiDevTask(String id, String title, String description, String status, String branchName, Double totalCost, String humanFeedback, OffsetDateTime createTime, OffsetDateTime updateTime) {
-        this(id, title, description, status, branchName, totalCost, humanFeedback, createTime, updateTime, 5, 3, new java.util.ArrayList<>());
+        this(id, title, description, status, branchName, totalCost, humanFeedback, createTime, updateTime, 5, 3, new java.util.ArrayList<>(), null, null, null, null, new java.util.ArrayList<>(), new java.util.ArrayList<>());
     }
 
-    public AiDevTask(String id, String title, String description, String status, String branchName, Double totalCost, String humanFeedback, OffsetDateTime createTime, OffsetDateTime updateTime, Integer maxBrainstormingRounds, Integer contextSlidingWindow, java.util.List<String> relatedWorkspaces) {
+    public AiDevTask(String id, String title, String description, String status, String branchName, Double totalCost, String humanFeedback, OffsetDateTime createTime, OffsetDateTime updateTime, Integer maxBrainstormingRounds, Integer contextSlidingWindow, java.util.List<String> relatedWorkspaces, String targetBranch, String relatedIssues, String constraints, String priority, java.util.List<String> affectedProjects, java.util.List<String> labels) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -36,6 +42,12 @@ public class AiDevTask {
         this.maxBrainstormingRounds = maxBrainstormingRounds != null ? maxBrainstormingRounds : 5;
         this.contextSlidingWindow = contextSlidingWindow != null ? contextSlidingWindow : 3;
         this.relatedWorkspaces = relatedWorkspaces != null ? relatedWorkspaces : new java.util.ArrayList<>();
+        this.targetBranch = targetBranch;
+        this.relatedIssues = relatedIssues;
+        this.constraints = constraints;
+        this.priority = priority;
+        this.affectedProjects = affectedProjects != null ? affectedProjects : new java.util.ArrayList<>();
+        this.labels = labels != null ? labels : new java.util.ArrayList<>();
     }
 
     public String getId() { return id; }
@@ -50,6 +62,12 @@ public class AiDevTask {
     public Integer getMaxBrainstormingRounds() { return maxBrainstormingRounds; }
     public Integer getContextSlidingWindow() { return contextSlidingWindow; }
     public java.util.List<String> getRelatedWorkspaces() { return relatedWorkspaces; }
+    public String getTargetBranch() { return targetBranch; }
+    public String getRelatedIssues() { return relatedIssues; }
+    public String getConstraints() { return constraints; }
+    public String getPriority() { return priority; }
+    public java.util.List<String> getAffectedProjects() { return affectedProjects; }
+    public java.util.List<String> getLabels() { return labels; }
 
     @Override
     public boolean equals(Object o) {

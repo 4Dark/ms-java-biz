@@ -25,6 +25,17 @@ public class AiDevTaskPO {
     @com.baomidou.mybatisplus.annotation.TableField(typeHandler = com.dark.aiagent.infrastructure.persistence.handler.PostgresJacksonTypeHandler.class)
     private java.util.List<String> relatedWorkspaces;
 
+    private String targetBranch;
+    private String relatedIssues;
+    private String constraints;
+    private String priority;
+
+    @com.baomidou.mybatisplus.annotation.TableField(typeHandler = com.dark.aiagent.infrastructure.persistence.handler.PostgresJacksonTypeHandler.class)
+    private java.util.List<String> affectedProjects;
+
+    @com.baomidou.mybatisplus.annotation.TableField(typeHandler = com.dark.aiagent.infrastructure.persistence.handler.PostgresJacksonTypeHandler.class)
+    private java.util.List<String> labels;
+
     // Getters and Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -61,4 +72,22 @@ public class AiDevTaskPO {
 
     public java.util.List<String> getRelatedWorkspaces() { return relatedWorkspaces; }
     public void setRelatedWorkspaces(java.util.List<String> relatedWorkspaces) { this.relatedWorkspaces = relatedWorkspaces; }
+
+    public String getTargetBranch() { return targetBranch; }
+    public void setTargetBranch(String targetBranch) { this.targetBranch = targetBranch; }
+
+    public String getRelatedIssues() { return relatedIssues; }
+    public void setRelatedIssues(String relatedIssues) { this.relatedIssues = relatedIssues; }
+
+    public String getConstraints() { return constraints; }
+    public void setConstraints(String constraints) { this.constraints = constraints; }
+
+    public String getPriority() { return priority; }
+    public void setPriority(String priority) { this.priority = priority; }
+
+    public java.util.List<String> getAffectedProjects() { return affectedProjects; }
+    public void setAffectedProjects(java.util.List<String> affectedProjects) { this.affectedProjects = affectedProjects; }
+
+    public java.util.List<String> getLabels() { return labels; }
+    public void setLabels(java.util.List<String> labels) { this.labels = labels; }
 }

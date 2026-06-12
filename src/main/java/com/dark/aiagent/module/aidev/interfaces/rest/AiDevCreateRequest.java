@@ -8,4 +8,13 @@ package com.dark.aiagent.module.aidev.interfaces.rest;
  * @param description 任务的自然语言描述
  * @param relatedWorkspaces 关联的前端填入的工程名列表
  */
-public record AiDevCreateRequest(String description, java.util.List<String> relatedWorkspaces) {}
+public record AiDevCreateRequest(
+    String title,
+    String description,
+    String targetBranch,
+    String relatedIssues,
+    String constraints,
+    String priority,
+    java.util.List<String> affectedProjects,
+    java.util.List<String> labels
+) {}

@@ -137,14 +137,14 @@ public class NativeAiDevIntegrationServiceImpl implements AiDevIntegrationUseCas
     }
 
     @Override
-    public AiDevTask createTask(String description, java.util.List<String> relatedWorkspaces) {
+    public AiDevTask createTask(String title, String description, String targetBranch, String relatedIssues, String constraints, String priority, java.util.List<String> affectedProjects, java.util.List<String> labels, java.util.List<String> relatedWorkspaces) {
         String id = UUID.randomUUID().toString();
-        String title = description.length() > 50 ? description.substring(0, 50) + "..." : description;
+        String finalTitle = title != null && !title.isBlank() ? title : (description.length() > 50 ? description.substring(0, 50) + "..." : description);
         long now = Instant.now().getEpochSecond();
         try (Connection conn = DriverManager.getConnection(getDbUrl());
              PreparedStatement pstmt = conn.prepareStatement("INSERT INTO tasks (id, title, body, status, created_at, consecutive_failures, goal_mode) VALUES (?, ?, ?, ?, ?, 0, 0)")) {
             pstmt.setString(1, id);
-            pstmt.setString(2, title);
+            pstmt.setString(2, finalTitle);
             pstmt.setString(3, description);
             pstmt.setString(4, "triage");
             pstmt.setLong(5, now);
@@ -152,7 +152,7 @@ public class NativeAiDevIntegrationServiceImpl implements AiDevIntegrationUseCas
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return new AiDevTask(id, title, description, "TRIAGE", null, 0.0, null, toOffsetDateTime(now), toOffsetDateTime(now), 5, 3, relatedWorkspaces);
+        return new AiDevTask(id, finalTitle, description, "TRIAGE", null, 0.0, null, toOffsetDateTime(now), toOffsetDateTime(now), 5, 3, relatedWorkspaces, targetBranch, relatedIssues, constraints, priority, affectedProjects, labels);
     }
 
     @Override

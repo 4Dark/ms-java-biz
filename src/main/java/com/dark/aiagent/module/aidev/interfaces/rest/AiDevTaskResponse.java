@@ -12,6 +12,12 @@ public record AiDevTaskResponse(
         OffsetDateTime createTime,
         OffsetDateTime updateTime,
         Integer maxBrainstormingRounds,
-        Integer contextSlidingWindow
+        Integer contextSlidingWindow,
+        String targetBranch,
+        String relatedIssues,
+        String constraints,
+        String priority,
+        java.util.List<String> affectedProjects,
+        java.util.List<String> labels
 ) {
 }
