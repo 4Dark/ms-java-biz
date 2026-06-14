@@ -34,7 +34,7 @@ COMMENT ON COLUMN ms_knowledge_document.file_hash IS '文档哈希值，用于�
 COMMENT ON COLUMN ms_knowledge_document.category IS '文档分类';
 COMMENT ON COLUMN ms_knowledge_document.metadata IS '文档扩展属性 JSONB';
 
-CREATE INDEX idx_knowledge_document_topic ON ms_knowledge_document(topic_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_document_topic ON ms_knowledge_document(topic_id);
 CREATE INDEX IF NOT EXISTS idx_ms_knowledge_doc_metadata ON ms_knowledge_document USING gin (metadata);
 
 CREATE TABLE IF NOT EXISTS ms_knowledge_chunk (

@@ -80,11 +80,11 @@ public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCa
      * @param description 自然语言任务描述
      * @return 新创建的任务
      */
-    public AiDevTask createTask(String title, String description, String targetBranch, String relatedIssues, String constraints, String priority, java.util.List<String> affectedProjects, java.util.List<String> labels, java.util.List<String> relatedWorkspaces, String engineMode) {
+    public AiDevTask createTask(String title, String description, String targetBranch, String relatedIssues, String constraints, String priority, java.util.List<String> affectedProjects, java.util.List<String> labels, java.util.List<String> relatedWorkspaces, String engineMode, java.util.List<String> assignedRoles) {
         String taskId = UUID.randomUUID().toString();
         String finalTitle = title != null && !title.isBlank() ? title : (description.length() > 50 ? description.substring(0, 50) + "..." : description);
         OffsetDateTime now = OffsetDateTime.now();
-        AiDevTask task = new AiDevTask(taskId, finalTitle, description, "PENDING", null, 0.0, null, now, now, 5, 3, relatedWorkspaces, targetBranch, relatedIssues, constraints, priority, affectedProjects, labels, engineMode);
+        AiDevTask task = new AiDevTask(taskId, finalTitle, description, "PENDING", null, 0.0, null, now, now, 5, 3, relatedWorkspaces, targetBranch, relatedIssues, constraints, priority, affectedProjects, labels, engineMode, assignedRoles);
         repository.save(task);
         return task;
     }
@@ -111,7 +111,7 @@ public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCa
                 content, task.getCreateTime(), OffsetDateTime.now(),
                 task.getMaxBrainstormingRounds(), task.getContextSlidingWindow(),
                 task.getRelatedWorkspaces(),
-                task.getTargetBranch(), task.getRelatedIssues(), task.getConstraints(), task.getPriority(), task.getAffectedProjects(), task.getLabels(), task.getEngineMode()
+                task.getTargetBranch(), task.getRelatedIssues(), task.getConstraints(), task.getPriority(), task.getAffectedProjects(), task.getLabels(), task.getEngineMode(), task.getAssignedRoles()
         );
         repository.save(updated);
     }
@@ -132,7 +132,7 @@ public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCa
                 task.getHumanFeedback(), task.getCreateTime(), OffsetDateTime.now(),
                 task.getMaxBrainstormingRounds(), task.getContextSlidingWindow(),
                 task.getRelatedWorkspaces(),
-                task.getTargetBranch(), task.getRelatedIssues(), task.getConstraints(), task.getPriority(), task.getAffectedProjects(), task.getLabels(), task.getEngineMode()
+                task.getTargetBranch(), task.getRelatedIssues(), task.getConstraints(), task.getPriority(), task.getAffectedProjects(), task.getLabels(), task.getEngineMode(), task.getAssignedRoles()
         );
         repository.save(updated);
     }
@@ -165,7 +165,7 @@ public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCa
                 task.getHumanFeedback(), task.getCreateTime(), OffsetDateTime.now(),
                 maxBrainstormingRounds, contextSlidingWindow,
                 task.getRelatedWorkspaces(),
-                task.getTargetBranch(), task.getRelatedIssues(), task.getConstraints(), task.getPriority(), task.getAffectedProjects(), task.getLabels(), task.getEngineMode()
+                task.getTargetBranch(), task.getRelatedIssues(), task.getConstraints(), task.getPriority(), task.getAffectedProjects(), task.getLabels(), task.getEngineMode(), task.getAssignedRoles()
         );
         repository.save(updated);
     }
@@ -184,7 +184,7 @@ public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCa
                 "PENDING", null, 0.0, null, task.getCreateTime(), OffsetDateTime.now(),
                 task.getMaxBrainstormingRounds(), task.getContextSlidingWindow(),
                 task.getRelatedWorkspaces(),
-                task.getTargetBranch(), task.getRelatedIssues(), task.getConstraints(), task.getPriority(), task.getAffectedProjects(), task.getLabels(), task.getEngineMode()
+                task.getTargetBranch(), task.getRelatedIssues(), task.getConstraints(), task.getPriority(), task.getAffectedProjects(), task.getLabels(), task.getEngineMode(), task.getAssignedRoles()
         );
         repository.save(updated);
     }
@@ -246,7 +246,7 @@ public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCa
                         task.getHumanFeedback(), task.getCreateTime(), OffsetDateTime.now(),
                         task.getMaxBrainstormingRounds(), task.getContextSlidingWindow(),
                         task.getRelatedWorkspaces(),
-                        task.getTargetBranch(), task.getRelatedIssues(), task.getConstraints(), task.getPriority(), task.getAffectedProjects(), task.getLabels(), task.getEngineMode()
+                        task.getTargetBranch(), task.getRelatedIssues(), task.getConstraints(), task.getPriority(), task.getAffectedProjects(), task.getLabels(), task.getEngineMode(), task.getAssignedRoles()
                 ));
                 broadcastSseEvent(taskId, payload);
                 break;
@@ -342,7 +342,7 @@ public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCa
                             existingTask.getHumanFeedback(), existingTask.getCreateTime(), existingTask.getUpdateTime(),
                             existingTask.getMaxBrainstormingRounds(), existingTask.getContextSlidingWindow(),
                             existingTask.getRelatedWorkspaces(),
-                            existingTask.getTargetBranch(), existingTask.getRelatedIssues(), existingTask.getConstraints(), existingTask.getPriority(), existingTask.getAffectedProjects(), existingTask.getLabels(), existingTask.getEngineMode()
+                            existingTask.getTargetBranch(), existingTask.getRelatedIssues(), existingTask.getConstraints(), existingTask.getPriority(), existingTask.getAffectedProjects(), existingTask.getLabels(), existingTask.getEngineMode(), existingTask.getAssignedRoles()
                     ));
                 }
                 
@@ -356,7 +356,7 @@ public class AdapterAiDevIntegrationUseCaseImpl implements AiDevIntegrationUseCa
                         task.getHumanFeedback(), task.getCreateTime(), OffsetDateTime.now(),
                         task.getMaxBrainstormingRounds(), task.getContextSlidingWindow(),
                         task.getRelatedWorkspaces(),
-                        task.getTargetBranch(), task.getRelatedIssues(), task.getConstraints(), task.getPriority(), task.getAffectedProjects(), task.getLabels(), task.getEngineMode()
+                        task.getTargetBranch(), task.getRelatedIssues(), task.getConstraints(), task.getPriority(), task.getAffectedProjects(), task.getLabels(), task.getEngineMode(), task.getAssignedRoles()
                 ));
                 System.err.println("[Webhook] Task " + taskId + " failed: " + error);
                 broadcastSseEvent(taskId, payload);

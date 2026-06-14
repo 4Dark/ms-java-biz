@@ -45,8 +45,15 @@ public class UserController {
                 if (claims.getSubject() != null) {
                     userId = claims.getSubject();
                 }
-                username = claims.get("name", String.class);
-                avatar = claims.get("avatar", String.class);
+                log.info("JWT Claims from Casdoor: {}", claims);
+                username = claims.get("displayName", String.class);
+                if (username == null || username.isEmpty()) {
+                    username = claims.get("name", String.class);
+                }
+                avatar = claims.get("picture", String.class);
+                if (avatar == null || avatar.isEmpty()) {
+                    avatar = claims.get("avatar", String.class);
+                }
             } catch (Exception e) {
                 log.warn("Failed to parse JWT in UserController: {}", e.getMessage());
             }

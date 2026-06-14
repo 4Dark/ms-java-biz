@@ -17,5 +17,6 @@ public record AiDevCreateRequest(
     String priority,
     java.util.List<String> affectedProjects,
     java.util.List<String> labels,
-    String engineMode
+    String engineMode,
+    java.util.List<String> assignedRoles
 ) {}

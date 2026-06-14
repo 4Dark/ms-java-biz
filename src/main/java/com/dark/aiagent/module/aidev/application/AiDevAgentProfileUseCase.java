@@ -55,7 +55,10 @@ public class AiDevAgentProfileUseCase {
                 return "generator";
             case "EVALUATOR":
                 return "evaluator";
+            case "FSA":
+                return "fsa";
             case "ORCHESTRATOR":
+            case "PM":
                 return "pm";
             default:
                 return null;

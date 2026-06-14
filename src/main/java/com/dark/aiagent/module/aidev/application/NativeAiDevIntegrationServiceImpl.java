@@ -78,7 +78,7 @@ public class NativeAiDevIntegrationServiceImpl implements AiDevIntegrationUseCas
                         null,
                         toOffsetDateTime(rs.getLong("created_at")),
                         toOffsetDateTime(rs.getLong("created_at")),
-                        5, 3, new java.util.ArrayList<>(), null, null, null, null, new java.util.ArrayList<>(), new java.util.ArrayList<>(), "HERMES_SINGLE"
+                        5, 3, new java.util.ArrayList<>(), null, null, null, null, new java.util.ArrayList<>(), new java.util.ArrayList<>(), "HERMES_SINGLE", new java.util.ArrayList<>()
                 ));
             }
         } catch (SQLException e) {
@@ -104,7 +104,7 @@ public class NativeAiDevIntegrationServiceImpl implements AiDevIntegrationUseCas
                             null,
                             toOffsetDateTime(rs.getLong("created_at")),
                             toOffsetDateTime(rs.getLong("created_at")),
-                            5, 3, new java.util.ArrayList<>(), null, null, null, null, new java.util.ArrayList<>(), new java.util.ArrayList<>(), "HERMES_SINGLE"
+                            5, 3, new java.util.ArrayList<>(), null, null, null, null, new java.util.ArrayList<>(), new java.util.ArrayList<>(), "HERMES_SINGLE", new java.util.ArrayList<>()
                     ));
                 }
             }
@@ -139,7 +139,7 @@ public class NativeAiDevIntegrationServiceImpl implements AiDevIntegrationUseCas
     }
 
     @Override
-    public AiDevTask createTask(String title, String description, String targetBranch, String relatedIssues, String constraints, String priority, java.util.List<String> affectedProjects, java.util.List<String> labels, java.util.List<String> relatedWorkspaces, String engineMode) {
+    public AiDevTask createTask(String title, String description, String targetBranch, String relatedIssues, String constraints, String priority, java.util.List<String> affectedProjects, java.util.List<String> labels, java.util.List<String> relatedWorkspaces, String engineMode, java.util.List<String> assignedRoles) {
         String id = UUID.randomUUID().toString();
         String finalTitle = title != null && !title.isBlank() ? title : (description.length() > 50 ? description.substring(0, 50) + "..." : description);
         long now = Instant.now().getEpochSecond();
@@ -154,7 +154,7 @@ public class NativeAiDevIntegrationServiceImpl implements AiDevIntegrationUseCas
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return new AiDevTask(id, finalTitle, description, "TRIAGE", null, 0.0, null, toOffsetDateTime(now), toOffsetDateTime(now), 5, 3, relatedWorkspaces, targetBranch, relatedIssues, constraints, priority, affectedProjects, labels, engineMode != null ? engineMode : "HERMES_SINGLE");
+        return new AiDevTask(id, finalTitle, description, "TRIAGE", null, 0.0, null, toOffsetDateTime(now), toOffsetDateTime(now), 5, 3, relatedWorkspaces, targetBranch, relatedIssues, constraints, priority, affectedProjects, labels, engineMode != null ? engineMode : "HERMES_SINGLE", assignedRoles != null ? assignedRoles : new java.util.ArrayList<>());
     }
 
     @Override

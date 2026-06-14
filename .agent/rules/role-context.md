@@ -20,3 +20,6 @@ trigger: always_on
 > 📖 编码规范详见 `coding-java.md`（打开 *.java 文件自动激活）
 > 🧪 测试规范详见 `testing-java.md`（打开 *Test.java 自动激活）
 > 🗄️ 数据库规范详见 `db-migration-rules.md`（打开 *.sql 自动激活）
+
+> 💡 **经验总结 (Casdoor JWT 解析)**: 严格遵守网关“零业务逻辑透传”原则，不要指望网关把姓名头像塞在 HTTP Header 里。下游接口（如 `/me`）必须从 Spring SecurityContext 中的 JWT 里自行解密解析 `displayName` 和 `picture` 字段。
+> 💡 **经验总结 (数据库增量同步)**: Java 实体类和建表脚本（如 `CREATE TABLE IF NOT EXISTS`）的更改不会自动影响已有数据库表结构！任何字段的新增必须在开发阶段手动通过 `ALTER TABLE` 语句增量执行，否则会导致 `MyBatis PSQLException` 列不存在报错。

@@ -21,8 +21,8 @@ CREATE TABLE IF NOT EXISTS ms_prompt_version (
     update_time TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_template FOREIGN KEY (template_id) REFERENCES ms_prompt_template(id) ON DELETE CASCADE
 );
-CREATE INDEX idx_prompt_version_template_id ON ms_prompt_version(template_id);
-CREATE INDEX idx_prompt_version_active ON ms_prompt_version(template_id) WHERE is_active = TRUE;
+CREATE INDEX IF NOT EXISTS idx_prompt_version_template_id ON ms_prompt_version(template_id);
+CREATE INDEX IF NOT EXISTS idx_prompt_version_active ON ms_prompt_version(template_id) WHERE is_active = TRUE;
 COMMENT ON TABLE ms_prompt_version IS 'Prompt 版本明细表';
 
 INSERT INTO ms_prompt_template (slug, type, description)

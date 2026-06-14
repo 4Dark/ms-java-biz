@@ -117,6 +117,8 @@ app:
     secret: ${JWT_SECRET:your-256-bit-secret-your-256-bit-secret}
   mcp:
     local-server-base-url: ${LOCAL_SERVER_BASE_URL:http://localhost:${server.port}}
+  upload:
+    image-dir: ${UPLOAD_IMAGE_DIR:/tmp/ai_uploads/images}
   security:
     ignore:
       urls:
@@ -134,6 +136,12 @@ app:
         - /s/**
         - /rest/biz/v1/ephemeral/**
         - /ws/ephemeral/**
+        - /rest/biz/v1/announcements
+        - /rest/biz/v1/announcements/**
+        - /rest/biz/v1/notice-board-items
+        # 公告图片资源（公开可访问，路径与上传接口对齐）
+        - /rest/biz/v1/upload/images/**
+        - /rest/biz/v1/notice-board-items/**
   knowledge:
     upload-dir: ${KNOWLEDGE_UPLOAD_DIR:/tmp/ai_knowledge_uploads}
     recipe-dir: ${KNOWLEDGE_RECIPE_DIR:/tmp/ai_knowledge_uploads/recipes}
@@ -149,4 +157,8 @@ ephemeral:
 ai-dev:
   integration:
     mode: ADAPTER
+
+dark:
+  notice-board:
+    extraction-code: ${NOTICE_BOARD_EXTRACTION_CODE:123456}
 
