@@ -35,7 +35,7 @@ class ShortLinkControllerTest {
         mockMvc.perform(get("/s/PklcS100")
                 .header("Referer", "https://feature-ephemerallink.ms-ng-view.pages.dev/s/PklcS100"))
                 .andExpect(status().isFound())
-                .andExpect(header().string("Location", "https://feature-ephemerallink.ms-ng-view.pages.dev/room/PklcS100"))
+                .andExpect(header().string("Location", "https://feature-ephemerallink.ms-ng-view.pages.dev/#/room/PklcS100"))
                 .andExpect(header().string("X-Robots-Tag", "noindex, nofollow"));
     }
 
@@ -47,7 +47,7 @@ class ShortLinkControllerTest {
         mockMvc.perform(get("/s/PklcS100")
                 .header("Referer", "https://122577.xyz/s/PklcS100"))
                 .andExpect(status().isFound())
-                .andExpect(header().string("Location", "https://122577.xyz/room/PklcS100"))
+                .andExpect(header().string("Location", "https://122577.xyz/#/room/PklcS100"))
                 .andExpect(header().string("X-Robots-Tag", "noindex, nofollow"));
     }
 
@@ -58,7 +58,34 @@ class ShortLinkControllerTest {
 
         mockMvc.perform(get("/s/PklcS100"))
                 .andExpect(status().isFound())
-                .andExpect(header().string("Location", "https://122577.xyz/room/PklcS100"))
+                .andExpect(header().string("Location", "https://122577.xyz/#/room/PklcS100"))
+                .andExpect(header().string("X-Robots-Tag", "noindex, nofollow"));
+    }
+
+    @Test
+    void redirect_without_referer_but_with_forwarded_headers_should_redirect_to_forwarded_host() throws Exception {
+        EphemeralRoom room = EphemeralRoom.create("room123", "PklcS100", "Test", 3600, "creator");
+        when(useCase.findRoom("PklcS100")).thenReturn(Optional.of(room));
+
+        mockMvc.perform(get("/s/PklcS100")
+                .header("X-Forwarded-Host", "dark.122577.xyz")
+                .header("X-Forwarded-Proto", "https"))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location", "https://dark.122577.xyz/#/room/PklcS100"))
+                .andExpect(header().string("X-Robots-Tag", "noindex, nofollow"));
+    }
+
+    @Test
+    void redirect_with_production_referer_and_different_access_domain_should_prioritize_access_domain() throws Exception {
+        EphemeralRoom room = EphemeralRoom.create("room123", "PklcS100", "Test", 3600, "creator");
+        when(useCase.findRoom("PklcS100")).thenReturn(Optional.of(room));
+
+        mockMvc.perform(get("/s/PklcS100")
+                .header("Referer", "https://dark.122577.xyz/s/PklcS100")
+                .header("X-Forwarded-Host", "122577.xyz")
+                .header("X-Forwarded-Proto", "https"))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location", "https://122577.xyz/#/room/PklcS100"))
                 .andExpect(header().string("X-Robots-Tag", "noindex, nofollow"));
     }
 
@@ -68,5 +95,30 @@ class ShortLinkControllerTest {
 
         mockMvc.perform(get("/s/PklcS100"))
                 .andExpect(status().isGone());
+    }
+
+    @Test
+    void redirect_with_multi_forwarded_hosts_should_use_first_host() throws Exception {
+        EphemeralRoom room = EphemeralRoom.create("room123", "PklcS100", "Test", 3600, "creator");
+        when(useCase.findRoom("PklcS100")).thenReturn(Optional.of(room));
+
+        mockMvc.perform(get("/s/PklcS100")
+                .header("X-Forwarded-Host", "122577.xyz, dark.122577.xyz")
+                .header("X-Forwarded-Proto", "https, http"))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location", "https://122577.xyz/#/room/PklcS100"))
+                .andExpect(header().string("X-Robots-Tag", "noindex, nofollow"));
+    }
+
+    @Test
+    void redirect_with_exception_should_fallback_to_default_domain() throws Exception {
+        EphemeralRoom room = EphemeralRoom.create("room123", "PklcS100", "Test", 3600, "creator");
+        when(useCase.findRoom("PklcS100")).thenReturn(Optional.of(room));
+
+        mockMvc.perform(get("/s/PklcS100")
+                .header("X-Forwarded-Host", "invalid host^name"))
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location", "https://122577.xyz/#/room/PklcS100"))
+                .andExpect(header().string("X-Robots-Tag", "noindex, nofollow"));
     }
 }
