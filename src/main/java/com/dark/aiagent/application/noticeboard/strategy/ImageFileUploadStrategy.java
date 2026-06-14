@@ -65,7 +65,7 @@ public class ImageFileUploadStrategy implements FileUploadStrategy {
             log.info("【ImageUpload】Saved: {} ({} bytes)", filename, file.getSize());
 
             // 6. 返回相对 URL，前端拼接 gateway base URL 使用
-            return Map.of("url", "/uploads/images/" + filename);
+            return Map.of("url", "/rest/biz/v1/upload/images/" + filename);
 
         } catch (IOException e) {
             log.error("【ImageUpload】Failed to save image", e);
