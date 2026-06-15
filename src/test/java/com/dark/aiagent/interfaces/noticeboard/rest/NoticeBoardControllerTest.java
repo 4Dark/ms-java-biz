@@ -52,7 +52,7 @@ class NoticeBoardControllerTest {
                 .content("Test Content")
                 .build();
 
-        when(noticeBoardService.getAnnouncements()).thenReturn(List.of(announcement));
+        when(noticeBoardService.getAnnouncements(null)).thenReturn(List.of(announcement));
 
         mockMvc.perform(get("/rest/biz/v1/announcements"))
                 .andExpect(status().isOk())

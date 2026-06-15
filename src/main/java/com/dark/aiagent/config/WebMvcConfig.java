@@ -13,6 +13,7 @@ import java.nio.file.Paths;
  * 将本地上传目录映射为可通过 /uploads/images/** 访问的 HTTP 静态资源。
  */
 @Configuration
+@org.springframework.context.annotation.Import(UploadProperties.class)
 @RequiredArgsConstructor
 public class WebMvcConfig implements WebMvcConfigurer {
 

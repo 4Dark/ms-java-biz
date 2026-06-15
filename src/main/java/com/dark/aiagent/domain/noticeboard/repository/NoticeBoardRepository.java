@@ -18,8 +18,8 @@ public interface NoticeBoardRepository {
 
     // Announcements
     Announcement saveAnnouncement(Announcement announcement);
-    List<Announcement> findAllAnnouncements();
-    PageResult<Announcement> findAnnouncementsPaged(int page, int size);
+    List<Announcement> findAllAnnouncements(String keyword);
+    PageResult<Announcement> findAnnouncementsPaged(int page, int size, String keyword);
     Optional<Announcement> findAnnouncementById(Long id);
     void deleteAnnouncement(Long id);
 }

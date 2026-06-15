@@ -45,15 +45,15 @@ public class NoticeBoardServiceImpl implements NoticeBoardService {
     }
 
     @Override
-    public List<Announcement> getAnnouncements() {
-        return noticeBoardRepository.findAllAnnouncements().stream()
+    public List<Announcement> getAnnouncements(String keyword) {
+        return noticeBoardRepository.findAllAnnouncements(keyword).stream()
                 .map(this::processDynamicStatus)
                 .toList();
     }
 
     @Override
-    public PageResult<Announcement> getAnnouncementsPaged(int page, int size) {
-        PageResult<Announcement> pageResult = noticeBoardRepository.findAnnouncementsPaged(page, size);
+    public PageResult<Announcement> getAnnouncementsPaged(int page, int size, String keyword) {
+        PageResult<Announcement> pageResult = noticeBoardRepository.findAnnouncementsPaged(page, size, keyword);
         List<Announcement> processedRecords = pageResult.records().stream()
                 .map(this::processDynamicStatus)
                 .collect(Collectors.toList());

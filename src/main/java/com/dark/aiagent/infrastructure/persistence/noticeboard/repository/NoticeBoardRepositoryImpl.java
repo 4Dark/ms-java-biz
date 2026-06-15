@@ -88,16 +88,26 @@ public class NoticeBoardRepositoryImpl implements NoticeBoardRepository {
     }
 
     @Override
-    public List<Announcement> findAllAnnouncements() {
+    public List<Announcement> findAllAnnouncements(String keyword) {
         LambdaQueryWrapper<AnnouncementDO> wrapper = new LambdaQueryWrapper<>();
+        if (keyword != null && !keyword.isBlank()) {
+            wrapper.and(w -> w.like(AnnouncementDO::getTitle, keyword)
+                              .or()
+                              .like(AnnouncementDO::getContent, keyword));
+        }
         wrapper.orderByDesc(AnnouncementDO::getCreateTime);
         return announcementMapper.selectList(wrapper).stream().map(ann -> converter.toEntity(ann))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public PageResult<Announcement> findAnnouncementsPaged(int page, int size) {
+    public PageResult<Announcement> findAnnouncementsPaged(int page, int size, String keyword) {
         LambdaQueryWrapper<AnnouncementDO> wrapper = new LambdaQueryWrapper<>();
+        if (keyword != null && !keyword.isBlank()) {
+            wrapper.and(w -> w.like(AnnouncementDO::getTitle, keyword)
+                              .or()
+                              .like(AnnouncementDO::getContent, keyword));
+        }
         wrapper.orderByDesc(AnnouncementDO::getCreateTime);
         Page<AnnouncementDO> mpPage = new Page<>(page, size);
         IPage<AnnouncementDO> resultPage = announcementMapper.selectPage(mpPage, wrapper);

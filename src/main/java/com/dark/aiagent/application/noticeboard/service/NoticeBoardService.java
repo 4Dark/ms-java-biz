@@ -12,8 +12,8 @@ public interface NoticeBoardService {
     void trackItemView(Long id);
     void deleteNoticeBoardItem(Long id);
 
-    List<Announcement> getAnnouncements();
-    PageResult<Announcement> getAnnouncementsPaged(int page, int size);
+    List<Announcement> getAnnouncements(String keyword);
+    PageResult<Announcement> getAnnouncementsPaged(int page, int size, String keyword);
     Announcement addAnnouncement(Announcement announcement);
     Announcement updateAnnouncement(Long id, Announcement announcement);
     Announcement getAnnouncementById(Long id, String extractionCode);

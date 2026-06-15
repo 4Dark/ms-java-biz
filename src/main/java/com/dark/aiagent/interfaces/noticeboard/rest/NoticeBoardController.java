@@ -26,16 +26,17 @@ public class NoticeBoardController {
     @GetMapping("/announcements")
     public ResponseEntity<?> getAnnouncements(
             @RequestParam(value = "page", required = false) Integer page,
-            @RequestParam(value = "size", required = false) Integer size) {
+            @RequestParam(value = "size", required = false) Integer size,
+            @RequestParam(value = "keyword", required = false) String keyword) {
         if (page == null && size == null) {
-            List<AnnouncementResponse> list = noticeBoardService.getAnnouncements().stream()
+            List<AnnouncementResponse> list = noticeBoardService.getAnnouncements(keyword).stream()
                     .map(this::toResponse)
                     .collect(Collectors.toList());
             return ResponseEntity.ok(list);
         }
         int pageNum = page != null ? page : 1;
         int pageSize = size != null ? size : 10;
-        PageResult<Announcement> pageResult = noticeBoardService.getAnnouncementsPaged(pageNum, pageSize);
+        PageResult<Announcement> pageResult = noticeBoardService.getAnnouncementsPaged(pageNum, pageSize, keyword);
         List<AnnouncementResponse> responses = pageResult.records().stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
