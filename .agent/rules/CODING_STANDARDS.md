@@ -1,5 +1,6 @@
 ---
-trigger: always_on
+trigger: on_demand
+description: ms-java-biz DDD 规范（已拆分）。详细规范见 skills/deep-reference/SKILL.md
 ---
 
 # Java 领域模型 (DDD) 编程规范

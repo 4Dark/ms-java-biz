@@ -64,6 +64,15 @@ public class ChatRepositoryImpl implements ChatRepository {
         );
     }
 
+    @Override
+    public void updateRating(Long messageId, String rating) {
+        chatMessageMapper.update(
+                Wrappers.<ChatMessageDO>lambdaUpdate()
+                        .set(ChatMessageDO::getRating, rating)
+                        .eq(ChatMessageDO::getId, messageId)
+        );
+    }
+
     private ChatMessage toDomain(ChatMessageDO doEntity) {
         if (doEntity == null) return null;
         return new ChatMessage(
@@ -71,6 +80,7 @@ public class ChatRepositoryImpl implements ChatRepository {
                 doEntity.getSessionId(),
                 doEntity.getRole(),
                 doEntity.getContent(),
+                doEntity.getRating(),
                 doEntity.getCreatedAt()
         );
     }
@@ -82,6 +92,7 @@ public class ChatRepositoryImpl implements ChatRepository {
                 .sessionId(domain.getSessionId())
                 .role(domain.getRole())
                 .content(domain.getContent())
+                .rating(domain.getRating())
                 .createdAt(domain.getCreatedAt())
                 .build();
     }

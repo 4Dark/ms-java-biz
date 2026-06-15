@@ -25,10 +25,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class KnowledgeDocumentApplicationServiceImpl
         implements KnowledgeDocumentApplicationService {
 
-    @Value("${app.knowledge.upload-dir:/tmp/ai_knowledge_uploads}")
+    @Value("${app.knowledge.upload-dir:/tmp/ai_uploads/knowledge}")
     private String uploadDir;
 
-    @Value("${app.knowledge.recipe-dir:/tmp/ai_knowledge_uploads/recipes}")
+    @Value("${app.knowledge.recipe-dir:/tmp/ai_uploads/recipes}")
     private String recipeDir;
 
     private final KnowledgeDocumentRepository documentRepository;

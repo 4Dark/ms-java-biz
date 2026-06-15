@@ -1,5 +1,6 @@
 ---
-trigger: always_on
+trigger: on_demand
+description: ms-java-biz 完整历史规范（已拆分）。核心内容已分别载入 core.md/coding-java.md/testing-java.md/database.md/devops.md，深度参考见 skills/deep-reference/SKILL.md
 ---
 
 # Role (角色)
@@ -74,7 +75,7 @@ trigger: always_on
 12. **路由前缀约定**:
     - 所有对前端暴露的业务端点，必须使用标准前缀 `/rest/biz/v1/...`。
     - 严禁使用随意的自定义前缀（如 `/api/dark/v1` 等）。
-    - 所有的 API 定义文档也必须基于该前缀统一输出至 `/docs/api-contracts`。
+    - 所有的 API 定义文档也必须基于该前缀统一输出至 `/ms-project-docs/api-contracts`。
 
 # Local Development & Restart Guide (本地开发与重启指南)
 - **端口配置**: 默认运行在 `8080` 端口。

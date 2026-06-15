@@ -11,6 +11,7 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 
 /**
  * 全局异常处理器：捕获所有异常并返回标准 JSON。
@@ -41,6 +42,21 @@ public class GlobalExceptionHandler {
 
         ErrorResponse error = ErrorResponse.of(traceId, HttpStatus.BAD_REQUEST.value(), errorCode, message, path);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(AsyncRequestTimeoutException.class)
+    public ResponseEntity<?> handleAsyncRequestTimeoutException(AsyncRequestTimeoutException e, HttpServletRequest request) {
+        String traceId = request.getHeader(TRACE_ID_HEADER);
+        String path = request.getRequestURI();
+        log.warn("【连接超时】Path: {}, traceId: {}, message: {}", path, traceId, e.getMessage());
+
+        if (isSseRequest(request)) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body("error: Timeout");
+        }
+
+        ErrorResponse error = ErrorResponse.of(traceId, HttpStatus.SERVICE_UNAVAILABLE.value(), 
+                String.valueOf(HttpStatus.SERVICE_UNAVAILABLE.value()), "Timeout", path);
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
     }
 
     @ExceptionHandler(Exception.class)

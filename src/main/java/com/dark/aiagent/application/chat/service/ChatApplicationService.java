@@ -30,4 +30,8 @@ public class ChatApplicationService {
     public void deleteSession(String sessionId) {
         chatRepository.deleteSession(sessionId);
     }
+
+    public void rateMessage(Long messageId, String rating) {
+        chatRepository.updateRating(messageId, rating);
+    }
 }

@@ -225,6 +225,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- SQLite JDBC for Native Hermes Integration -->
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.45.2.0</version>
+        </dependency>
+
         <!-- 阅后即焚通讯空间：WebSocket 实时通讯 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

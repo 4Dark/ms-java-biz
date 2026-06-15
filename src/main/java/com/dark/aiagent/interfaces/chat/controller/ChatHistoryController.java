@@ -1,12 +1,15 @@
 package com.dark.aiagent.interfaces.chat.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -45,5 +48,13 @@ public class ChatHistoryController {
     public ResponseEntity<Void> deleteSession(@PathVariable String sessionId) {
         chatApplicationService.deleteSession(sessionId);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Rate a chat message")
+    @PostMapping("/{messageId}/rating")
+    public ResponseEntity<Void> rateMessage(@PathVariable Long messageId, @RequestBody Map<String, String> body) {
+        String rating = body.get("rating");
+        chatApplicationService.rateMessage(messageId, rating);
+        return ResponseEntity.ok().build();
     }
 }
