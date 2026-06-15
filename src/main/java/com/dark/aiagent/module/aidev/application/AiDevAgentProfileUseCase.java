@@ -199,7 +199,7 @@ public class AiDevAgentProfileUseCase {
             modelMap.put("default", modelName);
             modelMap.put("base_url", baseUrl != null ? baseUrl : "");
 
-            String provider = "openai-api";
+            String provider = "openai";
             if (baseUrl != null) {
                 String lower = baseUrl.toLowerCase();
                 if (lower.contains("googleapis") || lower.contains("google")) {
